@@ -1,0 +1,235 @@
+/**
+ * Adishiv Luxury Hotel & Suites
+ * Motion System: Preloader Choreography, Cursor, Transitions & Accessibility
+ */
+
+/* ----------------------------------------------------------------------------
+ * 1. SIGNATURE PRELOADER (Left Coast Reference Inspired)
+ * ---------------------------------------------------------------------------- */
+.preloader-curtain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-obsidian);
+  z-index: var(--z-preloader);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-white);
+  overflow: hidden;
+  pointer-events: auto;
+  will-change: transform, clip-path, opacity;
+}
+
+.preloader-monogram {
+  width: 140px;
+  height: 140px;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.preloader-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.preloader-path {
+  stroke: var(--color-gold);
+  stroke-width: 1.5;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  fill: transparent;
+  transition: fill 0.6s ease;
+}
+
+.preloader-text-group {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preloader-brand-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 2.8vw, 3rem);
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--color-text-white);
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.preloader-brand-sub {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.preloader-progress-container {
+  width: 200px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  margin-top: 2rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+}
+
+.preloader-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: var(--color-gold);
+  transition: width 0.1s linear;
+}
+
+.preloader-counter {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+/* ----------------------------------------------------------------------------
+ * 2. CUSTOM DESKTOP CURSOR
+ * ---------------------------------------------------------------------------- */
+@media (pointer: fine) {
+  .custom-cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: var(--z-cursor);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s, transform 0.1s ease;
+  }
+
+  .custom-cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--color-gold-muted);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: var(--z-cursor);
+    transform: translate(-50%, -50%);
+    transition: width 0.25s ease-out, height 0.25s ease-out, border-color 0.25s, background-color 0.25s;
+  }
+
+  .custom-cursor-ring.is-hover {
+    width: 60px;
+    height: 60px;
+    border-color: var(--color-gold);
+    background-color: rgba(200, 164, 107, 0.08);
+  }
+}
+
+/* Disabled on touch devices */
+@media (pointer: coarse) {
+  .custom-cursor-dot, .custom-cursor-ring {
+    display: none !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * 3. HERO ENTRANCE & SCROLL REVEALS
+ * ---------------------------------------------------------------------------- */
+.hero-editorial-wrap {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--color-obsidian);
+}
+
+.hero-bg-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.65;
+  transform: scale(1.05);
+  transition: transform 1.8s var(--ease-cinematic);
+}
+
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 15, 18, 0.45) 0%,
+    rgba(12, 15, 18, 0.6) 60%,
+    rgba(12, 15, 18, 0.95) 100%
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 960px;
+  padding: 0 1.5rem;
+  color: var(--color-text-white);
+  padding-top: 5rem;
+  padding-bottom: 7rem;
+}
+
+.hero-headline {
+  font-family: var(--font-serif);
+  font-size: var(--text-hero);
+  font-weight: 500;
+  line-height: 1.05;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.015em;
+  color: var(--color-text-white);
+}
+
+.hero-subheadline {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 680px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+
+/* ----------------------------------------------------------------------------
+ * 4. ACCESSIBILITY: PREFERS-REDUCED-MOTION
+ * ---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .preloader-curtain {
+    display: none !important;
+  }
+
+  .custom-cursor-dot, .custom-cursor-ring {
+    display: none !important;
+  }
+}
