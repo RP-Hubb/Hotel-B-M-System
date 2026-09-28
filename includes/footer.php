@@ -86,6 +86,10 @@
     </div>
   </footer>
 
+  <!-- GSAP Animation Engine & ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
   <!-- Core JavaScript Modules -->
   <script src="<?= asset_url('assets/js/preloader.js') ?>"></script>
   <script src="<?= asset_url('assets/js/navigation.js') ?>"></script>

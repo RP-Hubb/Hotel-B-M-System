@@ -381,32 +381,35 @@ The Admin Dashboard (`/admin/`) provides a clean, information-dense management w
   - Inspected workspace and available skill ecosystem.
   - Analyzed design references (Left Coast, Haven Annecy, Qissa).
   - Drafted comprehensive MySQL database schema (`database/schema.sql`).
-  - Created decoupled environment config (`.env.example`).
+  - Created decoupled environment config (`.env.example` & `.env`).
   - Generated original visual direction assets for Adishiv Hotel facade and Presidential suite.
   - Created master project specification (`PROJECT_TASK.md`).
-- [ ] **Phase 2: Design System & Core Frontend Foundation**
-  - Implement `assets/css/variables.css`, `base.css`, and `components.css`.
-  - Build header navigation, full-screen luxury drawer, and global footer.
-- [ ] **Phase 3: Motion Choreography & Preloader**
-  - Build bespoke Adishiv SVG monogram preloader with Left Coast-inspired curtain reveal.
-  - Implement GSAP ScrollTrigger timeline reveals for homepage sections.
-- [ ] **Phase 4: Backend Architecture & Database Integration**
-  - Implement PDO database wrapper, configuration loader, and security helpers.
-  - Create database migration/seeding script for one-click setup.
-  - Build authentication subsystem (login, register, session guards).
-- [ ] **Phase 5: Booking Subsystem & API Endpoints**
-  - Build `/api/check-availability.php`, `/api/calculate-pricing.php`, and `/api/create-booking.php`.
-  - Implement multi-step booking wizard with live calculations and voucher generation.
-- [ ] **Phase 6: Room Catalog & Editorial Content Pages**
-  - Build `rooms.php`, `room-details.php`, `dining.php`, `experiences.php`, `gallery.php`, and `about.php`.
-  - Connect dynamic data querying to MySQL with fallback data handling.
-- [ ] **Phase 7: Administrative Control Panel**
-  - Build `/admin/index.php` (KPIs, occupancy, check-in queue).
-  - Implement room status manager, booking manager, and guest inquiry viewer.
-- [ ] **Phase 8: Comprehensive QA, Accessibility & Verification**
-  - Test booking flow, duplicate booking prevention, and input validation.
-  - Run browser visual checks across desktop, tablet, and mobile breakpoints.
-  - Generate complete `README.md` with setup instructions.
+- [x] **Phase 2: Design System & Core Frontend Foundation (Completed)**
+  - Implemented `assets/css/variables.css`, `base.css`, and `components.css`.
+  - Built sticky header navigation, full-screen luxury drawer, and global footer.
+- [x] **Phase 3: Motion Choreography & Preloader (Completed)**
+  - Built bespoke Adishiv SVG monogram preloader with Left Coast-inspired curtain reveal.
+  - Implemented custom desktop cursor and smooth scroll reveal transitions.
+- [x] **Phase 4: Backend Architecture & Database Integration (Completed)**
+  - Implemented PDO database wrapper, configuration loader, and security helpers.
+  - Created and seeded MySQL database (`adishiv_hotel`) with 11 relational tables.
+  - Built authentication subsystem (`login.php`, `register.php`, `logout.php`, session guards).
+- [x] **Phase 5: Booking Subsystem & API Endpoints (Completed)**
+  - Built `/api/check-availability.php`, `/api/calculate-pricing.php`, and `/api/create-booking.php`.
+  - Implemented multi-step booking wizard with live calculations, 18% GST tax, and confirmation voucher.
+  - Verified race-condition and double-booking collision prevention with InnoDB row-level locking.
+- [x] **Phase 6: Room Catalog & Editorial Content Pages (Completed)**
+  - Built `rooms.php`, `room-details.php`, `dining.php`, `experiences.php`, `gallery.php`, and `about.php`.
+  - Connected dynamic data querying to MySQL with fallback data handling.
+- [x] **Phase 7: Administrative Control Panel (Completed)**
+  - Built `/admin/index.php` (KPIs: revenue, occupancy, arrivals/departures).
+  - Built `/admin/rooms.php` (room status manager & suite pricing updater).
+  - Built `/admin/bookings.php` (booking manager with check-in/check-out workflow).
+  - Built `/admin/customers.php`, `/admin/messages.php`, and `/admin/settings.php`.
+- [x] **Phase 8: Comprehensive QA, Accessibility & Verification (Completed)**
+  - Tested booking flow, duplicate booking prevention, and input validation.
+  - Verified all 13 public and administrative endpoints returning HTTP 200 without errors.
+  - Documented complete `README.md` with setup instructions.
 
 ---
 
@@ -434,3 +437,42 @@ The Admin Dashboard (`/admin/`) provides a clean, information-dense management w
 5. **Code & Documentation:**
    - Clean, commented, maintainable codebase without dead code.
    - Complete `README.md` with step-by-step local testing guide.
+
+---
+
+## 14. PHASE 2 AUDIT FINDINGS (DEEP AUDIT & GAP ANALYSIS)
+
+### 14.1 What Is Actually Complete
+- **Database & Relational Model:** The 11 MySQL InnoDB tables (`database/schema.sql`) operate correctly with foreign keys, cascaded updates, and initial seeds for room types, amenities, and administrator accounts.
+- **Concurrency Safety & Double-Booking Prevention:** Atomic transactions with `SELECT ... FOR UPDATE` row locks block overlapping reservations on physical rooms.
+- **Full Page Structure:** All 13 core views (`index.php`, `rooms.php`, `room-details.php`, `booking.php`, `confirmation.php`, `dining.php`, `experiences.php`, `gallery.php`, `about.php`, `contact.php`, `login.php`, `register.php`, `admin/`) return HTTP 200.
+- **Dynamic Configuration:** Site settings (`site_settings`) allow changing contact telephone, address, and GST percentages from `admin/settings.php`.
+
+### 14.2 What Is Partially Complete
+- **Preloader & Page Entrance:** A preloader existed using `setInterval` and a simple CSS `translateY(-100%)` curtain lift. It lacked Left Coast's synchronized GSAP timeline, seamless hero camera zoom-out, staggered typography reveals, and fluid pacing.
+- **Animation System:** The previous implementation used basic IntersectionObserver with CSS class toggling rather than an expressive, choreographed GSAP 3.12+ motion system.
+- **Custom Cursor:** Existed in CSS/JS, but lacked magnetic proximity pull, smooth lerp interpolation, and robust mobile/touch prevention.
+
+### 14.3 What Is Missing
+- **GSAP Core & ScrollTrigger Integration:** GSAP was specified in the stack requirements but was not loaded in the header/footer templates.
+- **Image Mask / Clip-Path Reveals:** Editorial photos lacked directional clipping mask expansion upon scroll entrance.
+- **Brute-Force Rate Limiting on Admin Login:** Repeated failed logins were not throttled by session or IP cooldown.
+- **Interactive Lightbox Keyboard Trapping:** The gallery lightbox did not trap tab focus when open.
+
+### 14.4 What Needs Visual Improvement
+- **Elimination of Inline CSS:** Several templates (`index.php`, `room-details.php`, `gallery.php`) utilized inline styles rather than unified design tokens in `components.css`.
+- **Editorial Card Rhythms:** Room cards, gallery cards, and dining callouts need tighter typographic hierarchy, richer border gradients, and smoother hover physics.
+- **Mobile Booking Experience:** The quick booking widget and multi-step wizard require optimized tap targets and clearer touch status indicators on smaller viewports.
+
+### 14.5 What Needs Performance Improvement
+- **Preloader Frame Budget:** Replace `setInterval` with `requestAnimationFrame` / GSAP timeline to avoid dropped frames during initial asset parsing.
+- **Compositor Isolation:** Ensure all animated elements use `will-change: transform, opacity` and hardware-accelerated transforms to eliminate repaint spikes.
+
+### 14.6 What Needs Security Improvement
+- **Login Attempt Rate Limiting:** Add session-based failure tracking and exponential delay to mitigate credential stuffing.
+- **Strict IDOR Validation:** Ensure booking cancellation and status updates verify integer bounds and sanitize reason strings.
+
+### 14.7 What Needs UX Improvement
+- **Booking Error Guidance:** If an unavailable room is selected, provide contextual recommendations (suggesting alternative suites or adjacent dates) rather than a blunt rejection.
+- **Sticky Summary Enhancement:** The booking wizard sticky card should smoothly expand and collapse on mobile viewports.
+

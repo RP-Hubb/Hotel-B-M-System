@@ -103,16 +103,18 @@ $galleryItems = [
 </div>
 
 <!-- Lightbox Modal -->
-<div id="galleryLightbox" style="position: fixed; inset: 0; background: rgba(12,15,18,0.95); z-index: var(--z-modal); display: none; align-items: center; justify-content: center; padding: 2rem;" onclick="closeLightbox(event)">
+<div id="galleryLightbox" role="dialog" aria-modal="true" aria-label="Photo Lightbox" style="position: fixed; inset: 0; background: rgba(12,15,18,0.96); z-index: var(--z-modal); display: none; align-items: center; justify-content: center; padding: 2rem;" onclick="closeLightbox(event)">
   <div style="max-width: 1000px; width: 100%; text-align: center; position: relative;" onclick="event.stopPropagation()">
-    <button type="button" onclick="closeLightbox()" style="position: absolute; top: -3rem; right: 0; background: transparent; border: none; color: #fff; font-size: 2rem; cursor: pointer;">✕</button>
-    <img id="lightboxImg" src="" alt="" style="max-height: 75vh; max-width: 100%; margin: 0 auto 1.5rem; border-radius: var(--radius-xs); box-shadow: var(--shadow-modal);">
-    <h3 id="lightboxTitle" style="color: #fff; font-size: 1.6rem; margin-bottom: 0.5rem;"></h3>
-    <p id="lightboxCaption" style="color: rgba(255,255,255,0.7); font-size: 1rem;"></p>
+    <button type="button" id="lightboxCloseBtn" onclick="closeLightbox()" aria-label="Close Lightbox" style="position: absolute; top: -3.2rem; right: 0; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✕</button>
+    <img id="lightboxImg" src="" alt="" style="max-height: 72vh; max-width: 100%; margin: 0 auto 1.5rem; border-radius: var(--radius-xs); box-shadow: var(--shadow-modal);">
+    <h3 id="lightboxTitle" style="color: #fff; font-size: 1.6rem; margin-bottom: 0.5rem; font-family: var(--font-serif);"></h3>
+    <p id="lightboxCaption" style="color: rgba(255,255,255,0.7); font-size: 1rem; max-width: 650px; margin: 0 auto;"></p>
   </div>
 </div>
 
 <script>
+let activeTriggerEl = null;
+
 document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.gallery-filter-btn').forEach(b => {
@@ -133,22 +135,19 @@ document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
   });
 });
 
-function openLightbox(imgSrc, title, caption) {
-  const lb = document.getElementById('galleryLightbox');
-  document.getElementById('lightboxImg').src = imgSrc;
-  document.getElementById('lightboxTitle').textContent = title;
-  document.getElementById('lightboxCaption').textContent = caption;
-  lb.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox() {
-  const lb = document.getElementById('galleryLightbox');
-  lb.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
+// Make cards accessible via keyboard
 document.querySelectorAll('.gallery-card').forEach(card => {
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('role', 'button');
+  card.setAttribute('aria-label', 'View photo in full screen');
+
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      card.click();
+    }
+  });
+
   card.addEventListener('mouseenter', () => {
     const ov = card.querySelector('.gallery-hover-overlay');
     if (ov) ov.style.opacity = '1';
@@ -161,6 +160,39 @@ document.querySelectorAll('.gallery-card').forEach(card => {
     const img = card.querySelector('img');
     if (img) img.style.transform = 'scale(1)';
   });
+});
+
+function openLightbox(imgSrc, title, caption) {
+  activeTriggerEl = document.activeElement;
+  const lb = document.getElementById('galleryLightbox');
+  document.getElementById('lightboxImg').src = imgSrc;
+  document.getElementById('lightboxImg').alt = title;
+  document.getElementById('lightboxTitle').textContent = title;
+  document.getElementById('lightboxCaption').textContent = caption;
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  const closeBtn = document.getElementById('lightboxCloseBtn');
+  if (closeBtn) closeBtn.focus();
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('galleryLightbox');
+  lb.style.display = 'none';
+  document.body.style.overflow = '';
+  if (activeTriggerEl && typeof activeTriggerEl.focus === 'function') {
+    activeTriggerEl.focus();
+  }
+}
+
+// Global Keyboard Listener for Lightbox
+document.addEventListener('keydown', (e) => {
+  const lb = document.getElementById('galleryLightbox');
+  if (lb && lb.style.display === 'flex') {
+    if (e.key === 'Escape') {
+      closeLightbox();
+    }
+  }
 });
 </script>
 

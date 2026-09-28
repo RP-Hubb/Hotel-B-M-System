@@ -637,3 +637,376 @@ textarea.form-control {
     flex-direction: row;
   }
 }
+
+/* ----------------------------------------------------------------------------
+ * 9. EDITORIAL PAGE HEADERS & CONTENT ARCHITECTURE
+ * ---------------------------------------------------------------------------- */
+.page-hero-banner {
+  background-color: var(--color-obsidian);
+  color: var(--color-text-white);
+  padding: 9rem 0 5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-hero-banner::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 164, 107, 0.35), transparent);
+}
+
+.page-hero-eyebrow {
+  color: var(--color-gold-light);
+  letter-spacing: 0.22em;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.page-hero-title {
+  color: #FFFFFF;
+  font-family: var(--font-serif);
+  font-size: clamp(2.4rem, 4vw, 4.2rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.25rem;
+}
+
+.page-hero-desc {
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 650px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  font-weight: 300;
+}
+
+/* Filter & Utility Subheader Bar */
+.filter-bar-wrap {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--color-border-hairline);
+  padding: 1.25rem 0;
+  box-shadow: var(--shadow-subtle);
+}
+
+.filter-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.filter-stat {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.filter-stat strong {
+  color: var(--color-obsidian);
+  font-weight: 600;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-main);
+}
+
+.filter-select-input {
+  width: auto;
+  padding: 0.45rem 1.25rem;
+  font-size: var(--text-xs);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-silk);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.filter-select-input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+.filter-reset-link {
+  font-size: var(--text-xs);
+  color: var(--color-terracotta);
+  text-decoration: underline;
+  font-weight: 500;
+  transition: opacity var(--transition-fast);
+}
+
+.filter-reset-link:hover {
+  opacity: 0.8;
+}
+
+/* Suites Grid Layout */
+.suites-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 2.5rem;
+}
+
+.room-card-spec-meta {
+  font-size: 0.72rem;
+  color: var(--color-gold);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.4rem;
+}
+
+.room-actions-group {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+/* Suite Detail Header & Showcase */
+.suite-detail-header {
+  background-color: var(--color-obsidian);
+  color: #FFFFFF;
+  padding: 8.5rem 0 3.5rem;
+  position: relative;
+}
+
+.suite-detail-backlink {
+  margin-bottom: 1.5rem;
+}
+
+.suite-detail-backlink a {
+  color: var(--color-gold);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  transition: transform var(--transition-fast);
+}
+
+.suite-detail-backlink a:hover {
+  transform: translateX(-3px);
+  color: var(--color-gold-light);
+}
+
+.suite-detail-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.suite-detail-rate-box {
+  text-align: right;
+}
+
+.suite-rate-from {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+}
+
+.suite-rate-figure {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: var(--color-gold);
+  line-height: 1.1;
+}
+
+.suite-rate-taxes {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+}
+
+.suite-showcase-frame {
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  max-height: 560px;
+  position: relative;
+}
+
+.suite-showcase-img {
+  width: 100%;
+  height: 560px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Suite Technical Specifications Grid */
+.suite-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+.spec-tile {
+  background: #FFFFFF;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-xs);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.spec-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-subtle);
+}
+
+.spec-tile-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+.spec-tile-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-obsidian);
+  font-family: var(--font-sans);
+}
+
+/* Suite Amenities Grid */
+.amenities-editorial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.amenity-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.amenity-bullet {
+  color: var(--color-gold);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.amenity-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-obsidian);
+  display: block;
+}
+
+.amenity-desc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Sticky Booking Card */
+.sticky-booking-card {
+  position: sticky;
+  top: 96px;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+.sticky-booking-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border-hairline);
+  padding-bottom: 1.25rem;
+}
+
+.sticky-pricing-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.sticky-price-num {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: var(--color-obsidian);
+}
+
+.sticky-details-list {
+  margin-bottom: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-size: 0.88rem;
+}
+
+.sticky-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Booking Wizard Components */
+.wizard-sticky-nav {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--color-border-hairline);
+  position: sticky;
+  top: 72px;
+  z-index: 50;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.wizard-steps-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 1.15rem 0;
+}
+
+.wizard-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.wizard-card-surface {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-subtle);
+  margin-bottom: 2.5rem;
+}
+

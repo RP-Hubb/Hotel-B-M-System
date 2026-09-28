@@ -12,7 +12,16 @@ if (is_logged_in() && is_admin()) {
 }
 
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (!isset($_SESSION['admin_login_attempts'])) {
+    $_SESSION['admin_login_attempts'] = 0;
+    $_SESSION['admin_login_lockout'] = 0;
+}
+
+// Check if locked out
+if ($_SESSION['admin_login_lockout'] > time()) {
+    $remaining = ceil(($_SESSION['admin_login_lockout'] - time()) / 60);
+    $error = "Too many failed attempts. Administrative portal locked for {$remaining} more minute(s).";
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token()) {
         $error = 'Security session expired. Please reload and try again.';
     } else {
@@ -21,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (login_user($email, $password)) {
             if (is_admin()) {
+                $_SESSION['admin_login_attempts'] = 0;
+                $_SESSION['admin_login_lockout'] = 0;
                 header('Location: index.php');
                 exit;
             } else {
@@ -28,7 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Access restricted to hotel administrators.';
             }
         } else {
-            $error = 'Invalid administrative credentials.';
+            $_SESSION['admin_login_attempts']++;
+            if ($_SESSION['admin_login_attempts'] >= 5) {
+                $_SESSION['admin_login_lockout'] = time() + 600; // 10 minute lockout
+                $error = 'Too many failed login attempts. Portal locked for 10 minutes.';
+            } else {
+                $left = 5 - $_SESSION['admin_login_attempts'];
+                $error = "Invalid administrative credentials. ({$left} attempt(s) remaining).";
+            }
         }
     }
 }
