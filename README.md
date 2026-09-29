@@ -153,13 +153,27 @@ To customize the hotel for a different property:
 
 ---
 
-## 8. Definition of Done & Quality Audit
+## 8. Phase 2 Upgrades & Interaction Architecture
 
-- Cohesive luxury visual identity inspired by editorial references (*Left Coast*, *Haven Annecy*, *Qissa*).
-- Left Coast inspired SVG path preloader and curtain reveal.
-- Responsive layout across desktop, laptop, tablet, and mobile.
-- MySQL relational database storing rooms, bookings, guests, and payments.
-- Real-time availability calculation and double-booking collision prevention.
-- Administrative control dashboard for reservations, rooms, and inquiries.
-- Zero console errors and zero PHP warnings.
+Phase 2 transformed the functional foundation into an art-directed hospitality digital experience:
+- **GSAP 3.12.5 & ScrollTrigger Integration:** Cinematic entrance timeline orchestrating SVG architectural arch drawing, numeric progress counter, dual-panel curtain wipe (`power4.inOut`), and staggered headline reveals.
+- **Returning Visitor Optimization:** Preloader fast-tracks (400ms) on secondary page visits via `sessionStorage.getItem('adishiv_intro_seen')`.
+- **Desktop Magnetic Proximity Buttons:** Interactive buttons subtly pull towards the cursor within a 65px radius using spring dampening, with hardware-accelerated transforms.
+- **Lerp-Smoothed Trailing Cursor:** Follows mouse pointer with linear interpolation, expands over interactive targets, and automatically deactivates on touch screens (`(pointer: coarse)`) and reduced motion preferences.
+- **Admin Rate Limiting & Hardened Security:** Protects `/admin/login.php` with session and IP-keyed tracking, triggering a 10-minute lockout after 5 consecutive failed attempts.
+- **Accessible Focus Trapping:** Modal navigation drawer and gallery lightbox trap Tab focus and close cleanly on `Escape`, restoring active element focus to trigger controls.
+- **Tokenized Component Architecture:** Eliminated inline styles from templates in favor of semantic, reusable design tokens in `assets/css/components.css`.
+
+---
+
+## 9. Definition of Done & Quality Audit
+
+- Cohesive luxury visual identity (*"Sanctuary in the Imperial Capital"*).
+- Cinematic GSAP SVG monogram preloader and curtain reveal.
+- Responsive layout across desktop (1920×1080, 1440×900), tablet (1024×768), and mobile (390×844).
+- MySQL relational database storing rooms, bookings, guests, and payments with InnoDB transactions.
+- Concurrency-safe booking engine preventing double-booking via `SELECT ... FOR UPDATE` row locks.
+- Administrative control dashboard for reservations, rooms, customers, messages, and settings.
+- Zero console errors and zero PHP warnings across all 13 application routes.
 - WCAG 2.2 AA accessibility and `prefers-reduced-motion` compliance.
+

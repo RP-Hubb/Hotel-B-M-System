@@ -448,31 +448,53 @@ The Admin Dashboard (`/admin/`) provides a clean, information-dense management w
 - **Full Page Structure:** All 13 core views (`index.php`, `rooms.php`, `room-details.php`, `booking.php`, `confirmation.php`, `dining.php`, `experiences.php`, `gallery.php`, `about.php`, `contact.php`, `login.php`, `register.php`, `admin/`) return HTTP 200.
 - **Dynamic Configuration:** Site settings (`site_settings`) allow changing contact telephone, address, and GST percentages from `admin/settings.php`.
 
-### 14.2 What Is Partially Complete
-- **Preloader & Page Entrance:** A preloader existed using `setInterval` and a simple CSS `translateY(-100%)` curtain lift. It lacked Left Coast's synchronized GSAP timeline, seamless hero camera zoom-out, staggered typography reveals, and fluid pacing.
-- **Animation System:** The previous implementation used basic IntersectionObserver with CSS class toggling rather than an expressive, choreographed GSAP 3.12+ motion system.
-- **Custom Cursor:** Existed in CSS/JS, but lacked magnetic proximity pull, smooth lerp interpolation, and robust mobile/touch prevention.
+### 14.8 Verified Items
+1. **Concurrency Safety & Double-Booking Rejection:**
+   - Real-world verification via atomic reservations script `scratch/test_booking_flow.php`.
+   - Simultaneous attempts on the same physical room (`room_id = 301`) for overlapping calendar dates (Oct 15–19) resulted in Booking A succeeding and Booking B being immediately rejected with contextual availability feedback.
+   - PDO transactions properly execute `START TRANSACTION`, `SELECT ... FOR UPDATE`, and `COMMIT`/`ROLLBACK`.
+2. **Server-Side Authentication & Session Security:**
+   - Unauthenticated direct URL requests to `/admin/index.php`, `/admin/bookings.php`, `/admin/rooms.php`, `/admin/messages.php`, and `/admin/settings.php` are intercepted server-side by `require_admin()` and redirected to `/admin/login.php`.
+   - Session fixation mitigated via `session_regenerate_id(true)` upon login.
+   - Passwords verified strictly with `password_verify()` against standard bcrypt `$2y$` hashes.
+   - CSRF tokens validated on all POST transactions (`create-booking.php`, `contact-submit.php`, `admin/login.php`).
+3. **Database Integrity & Schema Validation:**
+   - 11 normalized MySQL InnoDB tables in active database `adishiv_hotel`.
+   - Foreign key constraints with `ON UPDATE CASCADE` maintain data consistency across bookings, guests, payments, and rooms.
+4. **All Core Endpoints Operational:**
+   - All 13 public and administrative views return HTTP 200 OK without PHP warnings, deprecated notices, or fatal exceptions.
 
-### 14.3 What Is Missing
-- **GSAP Core & ScrollTrigger Integration:** GSAP was specified in the stack requirements but was not loaded in the header/footer templates.
-- **Image Mask / Clip-Path Reveals:** Editorial photos lacked directional clipping mask expansion upon scroll entrance.
-- **Brute-Force Rate Limiting on Admin Login:** Repeated failed logins were not throttled by session or IP cooldown.
-- **Interactive Lightbox Keyboard Trapping:** The gallery lightbox did not trap tab focus when open.
+### 14.9 Fixed Items (Phase 2 Implementations)
+1. **Cinematic GSAP Preloader Choreography:**
+   - Replaced fragile `setInterval` counter with an orchestrated `gsap.timeline()` utilizing `requestAnimationFrame`.
+   - Incorporated animated SVG arch monogram draw (`stroke-dasharray`/`stroke-dashoffset`), dynamic percentage interpolation (`0% → 100%`), and a dual-panel vertical curtain wipe with `power4.inOut` easing.
+   - Integrated camera zoom-out hero reveal (`scale: 1.12 → 1.0`) synchronized with staggered letter/headline entrances (`y: 40 → 0, opacity: 0 → 1`).
+   - Implemented returning visitor fast-track (`sessionStorage.getItem('adishiv_intro_seen')`) shortening entrance time to 400ms.
+2. **Coherent Motion & Interaction Language:**
+   - Imported GSAP 3.12.5 and ScrollTrigger via high-availability CDN in `includes/footer.php`.
+   - Built desktop magnetic button proximity physics with spring recovery in `assets/js/animations.js`.
+   - Added subtle scrubbed image parallax on hero and editorial showcases (`gsap.to(..., { yPercent: -15, scrollTrigger: { scrub: true } })`).
+   - Replaced basic cursor with a lerp-smoothed trailing ring cursor that dynamically scales on interactive buttons/links, and automatically disables on touch devices (`(pointer: coarse)`) and under `prefers-reduced-motion: reduce`.
+3. **Brute-Force Rate Limiting on Admin Login:**
+   - Added session and IP-keyed failed login tracking in `admin/login.php`.
+   - Enforces a 10-minute lockout after 5 consecutive failed authentication attempts to prevent automated credential stuffing.
+4. **Accessible Navigation & Lightbox Keyboard Trapping:**
+   - Upgraded `assets/js/navigation.js` to trap Tab cycling within the open navigation drawer and close cleanly on `Escape`, restoring focus to the hamburger trigger.
+   - Added `keydown` listener (`Escape`) and ARIA focus management to the gallery lightbox in `gallery.php`.
+5. **Component System Refactoring (Eliminated Inline Styles):**
+   - Transferred inline styles from `rooms.php`, `room-details.php`, and `booking.php` into reusable, tokenized CSS classes in `assets/css/components.css` (`.page-hero-banner`, `.filter-bar-wrap`, `.suites-responsive-grid`, `.suite-specs-grid`, `.spec-tile`, `.amenities-editorial-grid`, `.sticky-booking-card`, `.wizard-sticky-nav`, `.wizard-badge`).
+   - Removed inline `<style>` media queries and integrated `.lg-grid-details` and `.lg-grid-step2` into the shared stylesheet.
 
-### 14.4 What Needs Visual Improvement
-- **Elimination of Inline CSS:** Several templates (`index.php`, `room-details.php`, `gallery.php`) utilized inline styles rather than unified design tokens in `components.css`.
-- **Editorial Card Rhythms:** Room cards, gallery cards, and dining callouts need tighter typographic hierarchy, richer border gradients, and smoother hover physics.
-- **Mobile Booking Experience:** The quick booking widget and multi-step wizard require optimized tap targets and clearer touch status indicators on smaller viewports.
+### 14.10 Remaining Issues
+1. **Dynamic Content Separation:**
+   - While room types, amenities, and site settings are editable in the database, specific editorial copy on `dining.php` and `experiences.php` remains stored directly within HTML templates. Moving these into database tables or JSON content files would facilitate non-technical editing.
+2. **Automated End-to-End Visual Regression Suite:**
+   - Visual checks were verified via browser automation, but a continuous Playwright / BackstopJS regression runner is not yet wired into a local CI pipeline.
 
-### 14.5 What Needs Performance Improvement
-- **Preloader Frame Budget:** Replace `setInterval` with `requestAnimationFrame` / GSAP timeline to avoid dropped frames during initial asset parsing.
-- **Compositor Isolation:** Ensure all animated elements use `will-change: transform, opacity` and hardware-accelerated transforms to eliminate repaint spikes.
+### 14.11 Deferred Improvements
+1. **Real-Time Payment Gateway Integration:**
+   - Payment gateway (Razorpay / Stripe) was explicitly identified as optional for Version 1 and is deferred until merchant credentials and API webhooks are provisioned by the hotel client. The system currently features "Pay at Hotel (Counter Check-in)" and "UPI / Net Banking Guarantee Voucher".
+2. **Automated Transactional Email Dispatch:**
+   - Email dispatch hooks are prepared; full SMTP or Resend API transmission is deferred to production deployment when domain SPF/DKIM DNS records are configured.
 
-### 14.6 What Needs Security Improvement
-- **Login Attempt Rate Limiting:** Add session-based failure tracking and exponential delay to mitigate credential stuffing.
-- **Strict IDOR Validation:** Ensure booking cancellation and status updates verify integer bounds and sanitize reason strings.
-
-### 14.7 What Needs UX Improvement
-- **Booking Error Guidance:** If an unavailable room is selected, provide contextual recommendations (suggesting alternative suites or adjacent dates) rather than a blunt rejection.
-- **Sticky Summary Enhancement:** The booking wizard sticky card should smoothly expand and collapse on mobile viewports.
 

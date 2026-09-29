@@ -14,33 +14,33 @@ $currentUser = current_user();
 ?>
 
 <!-- Header Banner -->
-<div style="background-color: var(--color-obsidian); color: #fff; padding: 7.5rem 0 3.5rem; text-align: center;">
+<div class="page-hero-banner" style="padding: 7.5rem 0 3.5rem;">
   <div class="container-narrow">
-    <div class="eyebrow center" style="color: var(--color-gold-light);">Imperial Reservations</div>
-    <h1 style="color: #fff; font-size: clamp(2.2rem, 3.5vw, 3.5rem); margin-bottom: 0.75rem;">
+    <div class="eyebrow center page-hero-eyebrow">Imperial Reservations</div>
+    <h1 class="page-hero-title">
       Reserve Your Sanctuary
     </h1>
-    <p style="color: rgba(255,255,255,0.7); max-width: 580px; margin: 0 auto; font-size: 1.05rem;">
+    <p class="page-hero-desc">
       Direct bookings enjoy complimentary airport transfers, daily imperial breakfast, and flexible cancellation.
     </p>
   </div>
 </div>
 
 <!-- Wizard Step Navigation -->
-<div style="background-color: #FFFFFF; border-bottom: 1px solid var(--color-border-hairline); position: sticky; top: 72px; z-index: 50;">
-  <div class="container-narrow" style="display: flex; justify-content: space-around; padding: 1rem 0;">
-    <div class="wizard-indicator active" data-step="1" style="display: flex; align-items: center; gap: 0.65rem; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-gold);">
-      <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-gold); color: #0C0F12;">1</span>
+<div class="wizard-sticky-nav">
+  <div class="container-narrow wizard-steps-row">
+    <div class="wizard-indicator active" data-step="1">
+      <span class="wizard-badge">1</span>
       <span>Dates & Suites</span>
     </div>
 
-    <div class="wizard-indicator" data-step="2" style="display: flex; align-items: center; gap: 0.65rem; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted);">
-      <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #CBD5E1; color: #64748B;">2</span>
+    <div class="wizard-indicator" data-step="2">
+      <span class="wizard-badge">2</span>
       <span>Guest Information</span>
     </div>
 
-    <div class="wizard-indicator" data-step="3" style="display: flex; align-items: center; gap: 0.65rem; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted);">
-      <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #CBD5E1; color: #64748B;">3</span>
+    <div class="wizard-indicator" data-step="3">
+      <span class="wizard-badge">3</span>
       <span>Review & Confirm</span>
     </div>
   </div>
@@ -54,7 +54,7 @@ $currentUser = current_user();
   <!-- STEP 1: DATES & SUITE SELECTION -->
   <div class="wizard-step-pane" id="wizardStep1">
     <!-- Date & Guest Controls -->
-    <div style="background: #FFFFFF; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-sm); padding: 2rem; box-shadow: var(--shadow-subtle); margin-bottom: 2.5rem;">
+    <div class="wizard-card-surface">
       <h3 style="font-size: 1.4rem; margin-bottom: 1.25rem;">Select Travel Dates & Party Size</h3>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; align-items: flex-end;">
         <div>
@@ -93,7 +93,7 @@ $currentUser = current_user();
   <div class="wizard-step-pane" id="wizardStep2" style="display: none;">
     <div style="display: grid; grid-template-columns: 1fr; gap: 2.5rem;" class="lg-grid-step2">
       <!-- Guest Details Form -->
-      <div style="background: #FFFFFF; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-sm); padding: 2rem; box-shadow: var(--shadow-subtle);">
+      <div class="wizard-card-surface">
         <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">Guest Identification</h3>
         <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1.5rem;">
           Please enter primary resident details as they appear on government identification.
@@ -168,7 +168,7 @@ $currentUser = current_user();
 
   <!-- STEP 3: REVIEW & GUARANTEE -->
   <div class="wizard-step-pane" id="wizardStep3" style="display: none;">
-    <div style="background: #FFFFFF; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-sm); padding: 2.5rem; box-shadow: var(--shadow-card); max-width: 760px; margin: 0 auto;">
+    <div class="wizard-card-surface" style="max-width: 760px; margin: 0 auto; box-shadow: var(--shadow-card);">
       <h3 style="font-size: 1.6rem; margin-bottom: 0.5rem; text-align: center;">Review & Confirm Your Reservation</h3>
       <p style="text-align: center; font-size: 0.95rem; color: var(--color-text-muted); margin-bottom: 2rem;">
         No upfront payment charged today. Payment is settled at the hotel concierge desk upon arrival.
@@ -201,21 +201,5 @@ $currentUser = current_user();
     </div>
   </div>
 </div>
-
-<style>
-@media (min-width: 992px) {
-  .lg-grid-step2 {
-    grid-template-columns: 1.6fr 1fr !important;
-  }
-}
-.wizard-indicator.completed span:first-child {
-  background: var(--color-success) !important;
-  color: #fff !important;
-  border-color: var(--color-success) !important;
-}
-.wizard-indicator.active {
-  color: var(--color-gold) !important;
-}
-</style>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

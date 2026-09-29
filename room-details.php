@@ -33,30 +33,30 @@ $otherSuites = array_filter(get_room_types(true), fn($x) => (int)$x['id'] !== (i
 ?>
 
 <!-- Room Header -->
-<div style="background-color: var(--color-obsidian); color: #fff; padding: 8rem 0 3.5rem;">
+<div class="suite-detail-header">
   <div class="container">
-    <div style="margin-bottom: 1.5rem;">
-      <a href="<?= asset_url('rooms.php') ?>" style="color: var(--color-gold); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 0.4rem;">
+    <div class="suite-detail-backlink">
+      <a href="<?= asset_url('rooms.php') ?>">
         ← Back to All Suites
       </a>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem;">
+    <div class="suite-detail-heading-row">
       <div>
-        <div class="eyebrow" style="color: var(--color-gold-light);">Private Sanctuary</div>
-        <h1 style="color: #fff; font-size: clamp(2.4rem, 4vw, 4rem); margin-bottom: 0.5rem;">
+        <div class="eyebrow page-hero-eyebrow">Private Sanctuary</div>
+        <h1 class="page-hero-title">
           <?= e($suite['name']) ?>
         </h1>
-        <p style="color: rgba(255,255,255,0.75); font-size: 1.1rem; max-width: 650px;">
+        <p class="page-hero-desc" style="text-align: left; margin: 0;">
           <?= e($suite['short_description']) ?>
         </p>
       </div>
       <div>
-        <div style="text-align: right;">
-          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); display: block;">From</span>
-          <span style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 600; color: var(--color-gold);">
+        <div class="suite-detail-rate-box">
+          <span class="suite-rate-from">From</span>
+          <span class="suite-rate-figure">
             <?= format_inr($suite['price_per_night']) ?>
           </span>
-          <span style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">/ night + taxes</span>
+          <span class="suite-rate-taxes">/ night + taxes</span>
         </div>
       </div>
     </div>
@@ -65,11 +65,11 @@ $otherSuites = array_filter(get_room_types(true), fn($x) => (int)$x['id'] !== (i
 
 <!-- Main Photo Showcase -->
 <div class="container" style="margin-top: -1.5rem; margin-bottom: 3.5rem;">
-  <div style="border-radius: var(--radius-xs); overflow: hidden; box-shadow: var(--shadow-card); max-height: 560px;">
+  <div class="suite-showcase-frame">
     <img 
       src="<?= asset_url($suite['featured_image']) ?>" 
       alt="<?= e($suite['name']) ?>" 
-      style="width: 100%; height: 560px; object-fit: cover;"
+      class="suite-showcase-img"
       fetchpriority="high"
     >
   </div>
@@ -87,34 +87,34 @@ $otherSuites = array_filter(get_room_types(true), fn($x) => (int)$x['id'] !== (i
 
       <!-- Key Specifications Table -->
       <h3 style="font-size: 1.4rem; margin-bottom: 1.25rem;">Suite Specifications</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
-        <div style="background: #fff; padding: 1.25rem; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-xs);">
-          <span class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.25rem;">Dimensions</span>
-          <strong><?= (int)$suite['room_size_sqft'] ?> Square Feet</strong>
+      <div class="suite-specs-grid">
+        <div class="spec-tile">
+          <span class="spec-tile-label">Dimensions</span>
+          <strong class="spec-tile-value"><?= (int)$suite['room_size_sqft'] ?> Sq. Ft.</strong>
         </div>
-        <div style="background: #fff; padding: 1.25rem; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-xs);">
-          <span class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.25rem;">Bed Configuration</span>
-          <strong><?= e($suite['bed_type']) ?></strong>
+        <div class="spec-tile">
+          <span class="spec-tile-label">Bed Configuration</span>
+          <strong class="spec-tile-value"><?= e($suite['bed_type']) ?></strong>
         </div>
-        <div style="background: #fff; padding: 1.25rem; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-xs);">
-          <span class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.25rem;">Max Occupancy</span>
-          <strong><?= (int)$suite['max_guests'] ?> Adults</strong>
+        <div class="spec-tile">
+          <span class="spec-tile-label">Max Occupancy</span>
+          <strong class="spec-tile-value"><?= (int)$suite['max_guests'] ?> Adults</strong>
         </div>
-        <div style="background: #fff; padding: 1.25rem; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-xs);">
-          <span class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.25rem;">Outlook</span>
-          <strong><?= e($suite['view_type']) ?></strong>
+        <div class="spec-tile">
+          <span class="spec-tile-label">Outlook</span>
+          <strong class="spec-tile-value"><?= e($suite['view_type']) ?></strong>
         </div>
       </div>
 
       <!-- Included Amenities -->
       <h3 style="font-size: 1.4rem; margin-bottom: 1.25rem;">Inclusive Amenities & Privileges</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 3rem;">
+      <div class="amenities-editorial-grid">
         <?php foreach ($amenities as $amenity): ?>
-          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-            <span style="color: var(--color-gold); font-size: 1.1rem; line-height: 1;">✦</span>
+          <div class="amenity-tile">
+            <span class="amenity-bullet">✦</span>
             <div>
-              <strong style="font-size: 0.92rem; display: block;"><?= e($amenity['name']) ?></strong>
-              <span class="text-muted" style="font-size: 0.8rem;"><?= e($amenity['description']) ?></span>
+              <strong class="amenity-name"><?= e($amenity['name']) ?></strong>
+              <span class="amenity-desc"><?= e($amenity['description']) ?></span>
             </div>
           </div>
         <?php endforeach; ?>
@@ -123,11 +123,11 @@ $otherSuites = array_filter(get_room_types(true), fn($x) => (int)$x['id'] !== (i
 
     <!-- Right Column: Sticky Booking Card -->
     <div>
-      <div style="position: sticky; top: 100px; background: #FFFFFF; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-sm); padding: 2rem; box-shadow: var(--shadow-card);">
-        <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-border-hairline); padding-bottom: 1rem;">
+      <div class="sticky-booking-card">
+        <div class="sticky-booking-header">
           <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-muted);">Nightly Rate</span>
-          <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-top: 0.25rem;">
-            <span style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 600; color: var(--color-text-main);">
+          <div class="sticky-pricing-row">
+            <span class="sticky-price-num">
               <?= format_inr($suite['price_per_night']) ?>
             </span>
             <span style="font-size: 0.85rem; color: var(--color-text-muted);">/ night</span>
@@ -135,20 +135,20 @@ $otherSuites = array_filter(get_room_types(true), fn($x) => (int)$x['id'] !== (i
           <span style="font-size: 0.75rem; color: var(--color-gold);">* Plus 18% Goods & Services Tax (GST)</span>
         </div>
 
-        <div style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.88rem;">
-          <div style="display: flex; justify-content: space-between;">
+        <div class="sticky-details-list">
+          <div class="sticky-detail-row">
             <span class="text-muted">Max Capacity:</span>
             <strong><?= (int)$suite['max_guests'] ?> Guests</strong>
           </div>
-          <div style="display: flex; justify-content: space-between;">
+          <div class="sticky-detail-row">
             <span class="text-muted">Check-in:</span>
             <span>14:00 onwards</span>
           </div>
-          <div style="display: flex; justify-content: space-between;">
+          <div class="sticky-detail-row">
             <span class="text-muted">Check-out:</span>
             <span>Until 11:00</span>
           </div>
-          <div style="display: flex; justify-content: space-between;">
+          <div class="sticky-detail-row">
             <span class="text-muted">Cancellation:</span>
             <span style="color: var(--color-success);">Complimentary up to 48h prior</span>
           </div>
@@ -165,13 +165,5 @@ $otherSuites = array_filter(get_room_types(true), fn($x) => (int)$x['id'] !== (i
     </div>
   </div>
 </div>
-
-<style>
-@media (min-width: 992px) {
-  .lg-grid-details {
-    grid-template-columns: 2fr 1fr !important;
-  }
-}
-</style>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
