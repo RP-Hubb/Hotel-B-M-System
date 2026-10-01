@@ -176,4 +176,3 @@ Phase 2 transformed the functional foundation into an art-directed hospitality d
 - Administrative control dashboard for reservations, rooms, customers, messages, and settings.
 - Zero console errors and zero PHP warnings across all 13 application routes.
 - WCAG 2.2 AA accessibility and `prefers-reduced-motion` compliance.
-
