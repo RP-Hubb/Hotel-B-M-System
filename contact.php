@@ -37,9 +37,9 @@ $presetSubject = trim($_GET['subject'] ?? 'General Concierge Inquiry');
         <div style="background: #fff; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-xs); padding: 1.5rem;">
           <strong style="color: var(--color-gold); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; display: block; margin-bottom: 0.4rem;">Physical Location</strong>
           <p style="font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--color-text-main);">
-            <?= e(get_setting('hotel_address', '14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri, New Delhi 110021, India')) ?>
+            <?= e(get_setting('hotel_address', 'G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001')) ?>
           </p>
-          <span style="font-size: 0.8rem; color: var(--color-text-muted);">25 minutes from Indira Gandhi International Airport (DEL)</span>
+          <span style="font-size: 0.8rem; color: var(--color-text-muted);">Central Delhi · 35 minutes from Indira Gandhi International Airport (DEL)</span>
         </div>
 
         <div style="background: #fff; border: 1px solid var(--color-border-hairline); border-radius: var(--radius-xs); padding: 1.5rem;">

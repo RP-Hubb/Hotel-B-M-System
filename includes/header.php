@@ -41,9 +41,10 @@ $currentUser = current_user();
     "email": "<?= e(get_setting('hotel_email', 'concierge@adishivhotel.com')) ?>",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri",
+      "streetAddress": "G-59, Connaught Circus, Connaught Place",
       "addressLocality": "New Delhi",
-      "postalCode": "110021",
+      "addressRegion": "Delhi",
+      "postalCode": "110001",
       "addressCountry": "IN"
     },
     "priceRange": "₹₹₹₹",
@@ -63,8 +64,12 @@ $currentUser = current_user();
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('reduced-motion');
     }
+    <?php
+      $appPath = parse_url(defined('APP_URL') ? APP_URL : '', PHP_URL_PATH) ?? '';
+      $appPath = rtrim($appPath, '/');
+    ?>
     window.APP = {
-      baseUrl: '<?= rtrim(APP_URL, '/') ?>',
+      baseUrl: '<?= $appPath ?>',
       csrf: '<?= csrf_token() ?>',
       today: '<?= (new DateTime('now', new DateTimeZone('Asia/Kolkata')))->format('Y-m-d') ?>'
     };
@@ -107,6 +112,22 @@ $currentUser = current_user();
         <div class="preloader-progress-bar"></div>
       </div>
       <div class="preloader-counter" role="status" aria-live="polite">00 / 100</div>
+    </div>
+  </div>
+
+  <!-- Signature Luxury Page Transition Curtain -->
+  <div class="page-transition-curtain" id="pageTransitionCurtain" aria-hidden="true" inert>
+    <div class="transition-panel transition-panel--left"></div>
+    <div class="transition-panel transition-panel--right"></div>
+    <div class="transition-brand-badge">
+      <div class="transition-monogram">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 90V45C15 25 35 10 50 10C65 10 85 25 85 45V90M50 10V90M25 60H75M35 75L50 55L65 75" stroke="var(--color-gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div class="transition-brand-title">Adishiv</div>
+      <div class="transition-brand-sub">Connaught Place · New Delhi</div>
+      <div class="transition-gold-line"></div>
     </div>
   </div>
 
@@ -207,9 +228,9 @@ $currentUser = current_user();
         <div>
           <h6>Location</h6>
           <p style="color: rgba(255,255,255,0.8); margin-bottom: 0.5rem;">
-            <?= e(get_setting('hotel_address', '14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri, New Delhi 110021')) ?>
+            <?= e(get_setting('hotel_address', 'G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001')) ?>
           </p>
-          <span style="font-size: 0.75rem; color: var(--color-gold);">Coordinates: 28°36'N · 77°12'E</span>
+          <span style="font-size: 0.75rem; color: var(--color-gold);">Coordinates: 28°37'N · 77°13'E</span>
         </div>
 
         <div>

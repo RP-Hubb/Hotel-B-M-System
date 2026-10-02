@@ -23,7 +23,7 @@ $amenities = get_amenities(true);
 
   <div class="hero-content">
     <div class="eyebrow" style="color: var(--color-gold-light); margin-bottom: 1.25rem;">
-      28°36'N · Diplomatic Enclave · New Delhi
+      28°37'N · Connaught Place · New Delhi
     </div>
     <h1 class="hero-headline">
       Sanctuary in the Imperial Capital.

@@ -10,7 +10,7 @@ INSERT INTO `site_settings` (`setting_key`, `setting_value`, `setting_group`, `d
 ('hotel_name', 'Adishiv Hotel & Suites', 'general', 'Official brand name'),
 ('hotel_tagline', 'Sanctuary in the Imperial Capital', 'general', 'Editorial tagline'),
 ('hotel_location', 'New Delhi, India', 'general', 'City and country'),
-('hotel_address', '14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri, New Delhi 110021, India', 'general', 'Physical address'),
+('hotel_address', 'G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001', 'general', 'Physical address'),
 ('hotel_phone', '+91 11 4982 7700', 'contact', 'Primary concierge phone'),
 ('hotel_email', 'concierge@adishivhotel.com', 'contact', 'Concierge email'),
 ('currency_symbol', '₹', 'localization', 'Currency display symbol'),

@@ -15,9 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Origin check (WP3.3)
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (!empty($origin)) {
-    $originHost = parse_url($origin, PHP_URL_HOST);
-    $serverHost = parse_url(APP_URL, PHP_URL_HOST) ?: ($_SERVER['HTTP_HOST'] ?? '');
-    if ($originHost && $serverHost && strtolower($originHost) !== strtolower(explode(':', $serverHost)[0])) {
+    $originHost = strtolower(parse_url($origin, PHP_URL_HOST) ?? '');
+    $reqHost = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
+    $appHost = strtolower(parse_url(defined('APP_URL') ? APP_URL : '', PHP_URL_HOST) ?? '');
+    $loopbackHosts = ['127.0.0.1', 'localhost', '::1'];
+
+    $isDirectMatch = ($originHost && ($originHost === $reqHost || $originHost === $appHost));
+    $isLoopbackMatch = (in_array($originHost, $loopbackHosts, true) && (in_array($reqHost, $loopbackHosts, true) || in_array($appHost, $loopbackHosts, true)));
+
+    if (!$isDirectMatch && !$isLoopbackMatch) {
         json_response(['success' => false, 'error' => 'Cross-origin request forbidden.'], 403);
     }
 }

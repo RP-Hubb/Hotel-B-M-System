@@ -1,5 +1,5 @@
 # Adishiv Luxury Hotel & Suites — Web Booking & Management System
-**Location:** Diplomatic Enclave, Chanakyapuri, New Delhi, India  
+**Location:** G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001, India  
 **Type:** Ultra-Luxury Boutique Heritage Hotel & Suites  
 **Primary Currency:** INR (₹) | **Taxation:** Indian Luxury Hospitality GST Slabs (SAC 9963)  
 **Technology Stack:** Vanilla PHP 8.0+ (8.3 tested) · Vanilla CSS3 (Custom Properties & Tokens) · Vanilla JavaScript (ES6+) · Self-Hosted GSAP 3.12.5 & ScrollTrigger · MySQL 8.0.16+ / MariaDB 10.6+ (InnoDB)

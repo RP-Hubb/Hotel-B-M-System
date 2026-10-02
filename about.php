@@ -36,7 +36,7 @@ require_once __DIR__ . '/includes/header.php';
 
   <div style="font-size: 1.05rem; line-height: 1.85; color: var(--color-text-main); display: flex; flex-direction: column; gap: 1.5rem;">
     <p>
-      Located in New Delhi’s protected Diplomatic Enclave, the estate was designed by master architects who spent years studying the classical proportional harmonies of Fatehpur Sikri and Lutyens' imperial boulevards. Rather than mimicking historical forms, they distilled them into clean, monumental lines of stone and glass.
+      Located in New Delhi’s iconic Connaught Place, the estate was designed by master architects who spent years studying the classical proportional harmonies of Fatehpur Sikri and Lutyens' imperial boulevards. Rather than mimicking historical forms, they distilled them into clean, monumental lines of stone and glass.
     </p>
     <p>
       The hotel's heart is its stepped central water courtyard. Here, cool breezes glide across lotus-laden pools before circulating through high-ceilinged verandahs, natural stone lattices (<em>jaalis</em>), and teak-paneled salons.

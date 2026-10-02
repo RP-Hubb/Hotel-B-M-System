@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const selectBtn = document.createElement('button');
         selectBtn.type = 'button';
-        selectBtn.className = isSelected ? 'btn btn-gold btn-sm is-success' : 'btn btn-gold btn-sm';
+        selectBtn.className = isSelected ? 'btn btn-gold btn-sm is-success select-suite-btn' : 'btn btn-gold btn-sm select-suite-btn';
         selectBtn.textContent = isSelected ? 'Selected ✓' : 'Select Suite';
         selectBtn.addEventListener('click', () => {
           selectSuite(s);

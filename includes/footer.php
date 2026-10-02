@@ -20,7 +20,7 @@
             A sanctuary of imperial calm in the heart of Delhi. Contemporary architecture meets the quiet majesty of Mughal stone craftsmanship, private courtyards, and bespoke butler service.
           </p>
           <div style="font-size: var(--text-xs); color: var(--color-gold); margin-top: 1rem;">
-            📍 <?= e(get_setting('hotel_address', '14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri, New Delhi 110021')) ?>
+            📍 <?= e(get_setting('hotel_address', 'G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001')) ?>
           </div>
         </div>
 
@@ -95,6 +95,7 @@
   <script src="<?= asset_url('assets/js/preloader.js') ?>"></script>
   <script src="<?= asset_url('assets/js/navigation.js') ?>"></script>
   <script src="<?= asset_url('assets/js/animations.js') ?>"></script>
+  <script src="<?= asset_url('assets/js/transitions.js') ?>"></script>
   <script src="<?= asset_url('assets/js/booking-widget.js') ?>"></script>
 </body>
 </html>

@@ -343,7 +343,8 @@ html.js:not(.reduced-motion) [data-reveal="text"].is-revealed > * {
     scroll-behavior: auto !important;
   }
 
-  .preloader-curtain {
+  .preloader-curtain,
+  .page-transition-curtain {
     display: none !important;
   }
 
@@ -366,4 +367,103 @@ html.js:not(.reduced-motion) [data-reveal="text"].is-revealed > * {
   .nav-overlay.is-active {
     opacity: 1 !important;
   }
+}
+
+/* ----------------------------------------------------------------------------
+ * 7. SIGNATURE LUXURY PAGE TRANSITION CURTAIN
+ * ---------------------------------------------------------------------------- */
+.page-transition-curtain {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  z-index: 9998;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.page-transition-curtain.is-active {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.transition-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.5%;
+  height: 100%;
+  background-color: var(--color-obsidian);
+  will-change: transform;
+}
+
+.transition-panel--left {
+  left: 0;
+  transform: translateX(-100%);
+  border-right: 1px solid rgba(200, 164, 107, 0.22);
+}
+
+.transition-panel--right {
+  right: 0;
+  transform: translateX(100%);
+  border-left: 1px solid rgba(200, 164, 107, 0.22);
+}
+
+.transition-brand-badge {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.92);
+  will-change: transform, opacity;
+  pointer-events: none;
+  text-align: center;
+}
+
+.transition-monogram {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 0.85rem;
+}
+
+.transition-monogram svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgba(200, 164, 107, 0.35));
+}
+
+.transition-brand-title {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-text-white);
+  margin-bottom: 0.35rem;
+}
+
+.transition-brand-sub {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: 0.75rem;
+}
+
+.transition-gold-line {
+  width: 44px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
 }

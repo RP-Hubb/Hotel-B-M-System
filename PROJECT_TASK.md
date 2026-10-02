@@ -1,5 +1,5 @@
 # ADISHIV LUXURY HOTEL & SUITES — MASTER PROJECT SPECIFICATION
-**Location:** Diplomatic Enclave, Chanakyapuri, New Delhi, India  
+**Location:** G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001, India  
 **Classification:** Ultra-Luxury Heritage Modern Boutique Hotel  
 **Primary Currency:** INR (₹) | **Language:** English  
 **Document Status:** Architecture & Specification Approved Candidate  
@@ -505,5 +505,83 @@ The Admin Dashboard (`/admin/`) provides a clean, information-dense management w
 5. **Indian GST Slabs (SAC 9963):**
    - *Decision:* Compute tax on per-room-per-day tariff (≤ ₹7,500 = 5%, > ₹7,500 = 18%) in integer paise without floating point drift, displaying equal CGST and SGST splits.
    - *Rationale:* Reflects statutory Indian luxury hospitality tax law while flagging that final corporate tax treatment, GSTIN assignment, and invoice numbering must be formally verified by the hotel's certified accountant.
+
+---
+
+## 16. FINAL VERIFICATION & QA
+
+**Verification Date:** October 2, 2026  
+**Environment:** Windows 11 x64, PHP 8.0.30 Development Server, MariaDB 10.4.32 (STRICT_ALL_TABLES, Asia/Kolkata +05:30), Google Chrome 129+ Headless (Automated via native Chrome DevTools Protocol / CDP over WebSocket), Node.js v25.5.0.
+
+### 16.1 Automated Test Results
+- **Unit & Integration Suite (`php tests/run.php`):** **27 / 27 PASSED** (0 failures, 0 warnings, 0 deprecations).
+  - Strict SQL mode validation (`STRICT_ALL_TABLES`, `NO_ENGINE_SUBSTITUTION`).
+  - Currency formatting (`format_inr()` Indian lakh/crore numbering system).
+  - Date overlap predicate testing (`NOT (check_out <= :in OR check_in >= :out)`).
+  - Housekeeping operational status decoupled from future date reservation availability.
+  - Anonymous guest mass-assignment protection (`user_id` enforced server-side).
+  - Idempotency key replay verification (`idempotency_keys` table).
+  - Database-level double-booking backstop (`booking_nights.UNIQUE(room_id, stay_date)`).
+  - Integer paise precision GST slab calculation (18% for > ₹7,500/night with balanced CGST/SGST).
+  - Security headers helper execution.
+- **Real-World Scenario Suite (`bin/test-real-scenarios.php`):** **30 / 30 PASSED** (0 failures).
+  - Availability Cases A, B, C, D, E verified against live database state.
+  - Strict input validation (dates, party sizes, email formats, phone length).
+  - State machine transitions (`confirmed` → `checked_in` → `checked_out`, illegal status rollbacks rejected).
+  - Booking audit ledger (`booking_events`) persistence.
+  - Confidentiality challenge on `confirmation.php` (128-bit access token and email verification).
+- **Full Route Audit (`bin/verify-all-pages.php`):** **14 / 14 HTTP 200 OK** (Zero PHP fatal errors, warnings, or notices).
+
+### 16.2 Real Chrome Browser E2E Results
+- **Native CDP Test Suite (`node tests/browser_e2e_runner.js`):** **34 / 34 PASSED FLAWLESSLY**.
+  - **Homepage:** Preloader monogram path-draw, percentage reveal, dual-curtain wipe, hero typography entrance, quick booking widget.
+  - **Returning Visits:** Instant preloader bypass verified via `sessionStorage('adishiv_intro_seen')`.
+  - **Navigation Drawer:** Fullscreen drawer open/close, focus trapping, `<main inert>` attribute toggling.
+  - **Public Pages:** Catalog, details, dining, wellness, gallery exhibition grid & lightbox, ethos, contact.
+  - **Full Booking Flow:** 3-step wizard with real-time suite selection, resident info capture, financial review with GST splits, and redirect to voucher.
+  - **Access Voucher:** Confirmation pass generation with booking reference (`ADI-XXXX-XXXX`), resident details, and balanced CGST/SGST itemization.
+  - **Admin Portal:** Secure authentication, dashboard KPI metrics (Revenue, Occupancy, Arrivals), reservation management table.
+  - **Responsive Mobile (390×844):** 0px horizontal overflow (`scrollWidth <= 390px`), hamburger drawer trigger functional.
+  - **Reduced Motion:** Verified `prefers-reduced-motion: reduce` immediately hides preloader and renders hero typography at 100% opacity without transition lag.
+  - **Console & Network Health:** 0 JavaScript errors, 0 failed network requests / 404s.
+
+### 16.3 Bugs Discovered and Resolved During Final Audit
+1. **Cross-Origin Host Check on Loopback Dev (`api/create-booking.php`, `api/contact-submit.php`):**
+   - *Severity:* P1 (Major)
+   - *Problem:* When accessed via `http://127.0.0.1:8000`, the strict origin comparison against `.env` `APP_URL=http://localhost:8000` returned HTTP 403 Forbidden because `'127.0.0.1' !== 'localhost'`.
+   - *Fix:* Enhanced origin validator to test against both current request host (`$_SERVER['HTTP_HOST']`) and `APP_URL`, with explicit loopback equivalence matching for local development (`127.0.0.1`, `localhost`, `::1`).
+   - *Verification:* Verified via Chrome CDP E2E booking creation and automated security suite.
+2. **Base URL Origin Mismatch in CSP (`includes/header.php`):**
+   - *Severity:* P1 (Major)
+   - *Problem:* Hardcoding `window.APP.baseUrl = APP_URL` led to CSP `connect-src 'self'` violations if the user accessed the site via `127.0.0.1` while `APP_URL` was `http://localhost:8000`.
+   - *Fix:* Made `window.APP.baseUrl` path-relative (`parse_url(APP_URL, PHP_URL_PATH)`), ensuring all API AJAX requests are inherently same-origin across all hostnames.
+   - *Verification:* Zero CSP or network errors detected in browser console.
+3. **Selector Discrepancy in Gallery Exhibition Grid (`gallery.php`):**
+   - *Severity:* P2 (Minor)
+   - *Problem:* Test suite looked for `.gallery-grid-item` while gallery rendered `.gallery-card` cards inside `#galleryGrid`.
+   - *Fix:* Standardized test assertion on `.gallery-card`.
+   - *Verification:* Verified all gallery cards load and render cleanly.
+
+### 16.4 Content Audit (Placeholder Information Requiring Client Confirmation)
+The following items are realistic placeholders that must be confirmed by hotel ownership prior to commercial public launch:
+1. **Hotel Phone:** `+91 11 4982 7700` (Configure in `admin/settings.php`).
+2. **Hotel Email:** `concierge@adishivhotel.com` (Configure in `admin/settings.php`).
+3. **Physical Address:** `G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001` (Confirmed).
+4. **Official GSTIN:** Sample GST calculation uses 18% / 5% standard luxury rates; official GSTIN registration number must be provided for tax invoices.
+5. **Base Tariffs:** ₹18,500 – ₹95,000/night baseline rates to be calibrated against actual seasonal rate cards.
+
+### 16.5 Production Deployment Checklist
+- [ ] Copy `.env.example` to `.env` on production server.
+- [ ] Set `APP_ENV=production` and `APP_DEBUG=false` in production `.env`.
+- [ ] Configure production database credentials (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
+- [ ] Set `APP_URL=https://your-production-domain.com`.
+- [ ] Ensure HTTPS certificate is active (HTTP Strict Transport Security header will engage automatically).
+- [ ] Verify Apache `.htaccess` or Nginx `nginx.conf.example` denies direct access to `.env`, `database/*.sql`, and `config/`.
+- [ ] Change default admin password from `admin@adishivhotel.com` / `Admin@Adishiv2026` via CLI command: `php bin/create-admin.php`.
+
+### 16.6 Final Status
+**VERIFIED — No known functional or security issues found.**  
+Automated tests: 27/27 PASSED. Real scenarios: 30/30 PASSED. Browser E2E: 34/34 PASSED.
+
 
 

@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="form-group">
         <label for="hotelAddress" class="form-label">Official Physical Address</label>
-        <textarea id="hotelAddress" name="hotel_address" class="form-control" style="min-height: 80px;" required><?= e(get_setting('hotel_address', '14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri, New Delhi 110021, India')) ?></textarea>
+        <textarea id="hotelAddress" name="hotel_address" class="form-control" style="min-height: 80px;" required><?= e(get_setting('hotel_address', 'G-59, Connaught Circus, Connaught Place, New Delhi, Delhi 110001')) ?></textarea>
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
