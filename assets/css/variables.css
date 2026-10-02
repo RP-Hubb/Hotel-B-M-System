@@ -14,6 +14,7 @@
   
   --color-gold: #C8A46B;
   --color-gold-light: #DFBE85;
+  --color-gold-ink: #7A5C28; /* High-contrast gold text on light sandstone/parchment surfaces (5.9:1) */
   --color-gold-muted: rgba(200, 164, 107, 0.4);
   --color-gold-glow: rgba(200, 164, 107, 0.15);
   
@@ -22,9 +23,12 @@
 
   --color-text-main: #14171A;
   --color-text-muted: #5C6470;
-  --color-text-light: #9DA6B2;
+  --color-text-light: #64748B; /* Raised contrast for accessibility (>= 4.5:1 on light) */
   --color-text-white: #FFFFFF;
   --color-text-gold: #C8A46B;
+
+  --focus-ring-light: 0 0 0 2px #0C0F12, 0 0 0 4px #DFBE85;
+  --focus-ring-dark: 0 0 0 2px #0C0F12, 0 0 0 4px #C8A46B;
 
   --color-border-subtle: rgba(200, 164, 107, 0.22);
   --color-border-hairline: rgba(0, 0, 0, 0.08);

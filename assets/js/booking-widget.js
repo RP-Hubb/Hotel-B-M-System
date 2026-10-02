@@ -1,41 +1,73 @@
 /**
  * Adishiv Luxury Hotel & Suites
- * Booking Subsystem & Real-Time Calculation Controller
+ * Booking Subsystem & Real-Time Calculation Controller (WP1.4, WP2.2, WP2.3, WP3.5, WP5.6)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Initialise default dates (Tomorrow -> 2 nights later)
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const departure = new Date(tomorrow);
-  departure.setDate(departure.getDate() + 2);
+  // Safe string escaper for DOM text insertion
+  const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
 
-  const formatDate = (d) => d.toISOString().split('T')[0];
+  // Base URL & hotel date from APP global
+  const baseUrl = (window.APP && window.APP.baseUrl) ? window.APP.baseUrl : '';
+  const hotelTodayStr = (window.APP && window.APP.today) ? window.APP.today : new Date().toISOString().split('T')[0];
+
+  // Helper to parse YYYY-MM-DD cleanly into Date object in local time
+  const parseISODate = (str) => {
+    if (!str || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return null;
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  const formatLocalDate = (d) => {
+    if (!d || isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // 1. Initialise default dates (Tomorrow -> 2 nights later) using hotel timezone
+  const todayDate = parseISODate(hotelTodayStr) || new Date();
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const defaultDeparture = new Date(tomorrowDate);
+  defaultDeparture.setDate(defaultDeparture.getDate() + 2);
 
   const checkInInputs = document.querySelectorAll('input[name="check_in"]');
   const checkOutInputs = document.querySelectorAll('input[name="check_out"]');
 
   checkInInputs.forEach((el) => {
-    if (!el.value) el.value = formatDate(tomorrow);
-    el.min = formatDate(today);
+    if (!el.value) el.value = formatLocalDate(tomorrowDate);
+    el.min = formatLocalDate(todayDate);
     el.addEventListener('change', () => {
-      // Ensure check-out is after check-in
-      const selectedIn = new Date(el.value);
+      const selectedIn = parseISODate(el.value);
+      if (!selectedIn) return;
+
       const minOut = new Date(selectedIn);
       minOut.setDate(minOut.getDate() + 1);
+      const minOutStr = formatLocalDate(minOut);
+
       checkOutInputs.forEach((outEl) => {
-        outEl.min = formatDate(minOut);
-        if (new Date(outEl.value) <= selectedIn) {
-          outEl.value = formatDate(minOut);
+        outEl.min = minOutStr;
+        const currentOut = parseISODate(outEl.value);
+        if (!currentOut || currentOut <= selectedIn) {
+          outEl.value = minOutStr;
         }
       });
     });
   });
 
   checkOutInputs.forEach((el) => {
-    if (!el.value) el.value = formatDate(departure);
-    el.min = formatDate(tomorrow);
+    if (!el.value) el.value = formatLocalDate(defaultDeparture);
+    el.min = formatLocalDate(tomorrowDate);
   });
 
   // 2. Homepage Quick Booking Bar Submission
@@ -48,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const guestsVal = quickBookingForm.querySelector('select[name="guests"]').value;
       const roomTypeVal = quickBookingForm.querySelector('select[name="room_type"]')?.value || '';
 
-      let url = `booking.php?check_in=${encodeURIComponent(inVal)}&check_out=${encodeURIComponent(outVal)}&guests=${encodeURIComponent(guestsVal)}`;
+      let url = `${baseUrl}/booking.php?check_in=${encodeURIComponent(inVal)}&check_out=${encodeURIComponent(outVal)}&guests=${encodeURIComponent(guestsVal)}`;
       if (roomTypeVal) {
         url += `&room_type_id=${encodeURIComponent(roomTypeVal)}`;
       }
@@ -59,12 +91,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Multi-Step Booking Page Engine (booking.php)
   const bookingWizard = document.getElementById('bookingWizard');
   if (bookingWizard) {
-    const step1 = document.getElementById('wizardStep1'); // Dates & Category
-    const step2 = document.getElementById('wizardStep2'); // Guest Details
-    const step3 = document.getElementById('wizardStep3'); // Review & Confirm
+    const step1 = document.getElementById('wizardStep1');
+    const step2 = document.getElementById('wizardStep2');
+    const step3 = document.getElementById('wizardStep3');
     const suiteOptionsContainer = document.getElementById('suiteOptionsContainer');
     const bookingSummaryCard = document.getElementById('bookingSummaryCard');
     const bookingFeedback = document.getElementById('bookingFeedback');
+
+    // Generate unique client idempotency key per wizard session (WP2.2)
+    const idempotencyKey = (window.crypto && typeof crypto.randomUUID === 'function')
+      ? crypto.randomUUID()
+      : ('idemp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 12));
+
+    let activeAbortController = null;
 
     let state = {
       checkIn: '',
@@ -75,90 +114,187 @@ document.addEventListener('DOMContentLoaded', () => {
       pricing: null
     };
 
-    // Load suites based on dates
+    const showInlineError = (container, message) => {
+      if (!container) return;
+      container.innerHTML = '';
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-error';
+      alertDiv.setAttribute('role', 'alert');
+      alertDiv.textContent = message;
+      container.appendChild(alertDiv);
+    };
+
+    // Load available suites from API
     const fetchAvailableSuites = async () => {
       const checkIn = document.getElementById('bookCheckIn').value;
       const checkOut = document.getElementById('bookCheckOut').value;
-      const guests = document.getElementById('bookGuests').value;
+      const guests = parseInt(document.getElementById('bookGuests').value, 10) || 1;
 
       state.checkIn = checkIn;
       state.checkOut = checkOut;
       state.guests = guests;
 
-      suiteOptionsContainer.innerHTML = `
-        <div style="padding: 2.5rem; text-align: center; color: var(--color-text-muted);">
-          <div class="spinner" style="margin: 0 auto 1rem; width: 28px; height: 28px; border: 2px solid var(--color-gold); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-          Checking live imperial sanctuary availability...
+      // Cancel previous pending availability request
+      if (activeAbortController) {
+        activeAbortController.abort();
+      }
+      activeAbortController = new AbortController();
+
+      suiteOptionsContainer.innerHTML = '';
+      const loadingWrap = document.createElement('div');
+      loadingWrap.style.padding = '2.5rem';
+      loadingWrap.style.textAlign = 'center';
+      loadingWrap.style.color = 'var(--color-text-muted)';
+      loadingWrap.innerHTML = `
+        <div class="spinner" role="status" style="margin: 0 auto 1rem; width: 28px; height: 28px; border: 2px solid var(--color-gold); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;">
+          <span class="sr-only">Checking availability...</span>
         </div>
+        <div>Checking live imperial sanctuary availability...</div>
       `;
+      suiteOptionsContainer.appendChild(loadingWrap);
 
       try {
-        const res = await fetch(`api/check-availability.php?check_in=${encodeURIComponent(checkIn)}&check_out=${encodeURIComponent(checkOut)}&guests=${encodeURIComponent(guests)}`);
+        const url = `${baseUrl}/api/check-availability.php?check_in=${encodeURIComponent(checkIn)}&check_out=${encodeURIComponent(checkOut)}&guests=${encodeURIComponent(guests)}`;
+        const res = await fetch(url, { signal: activeAbortController.signal });
         const data = await res.json();
 
         if (!data.success) {
-          suiteOptionsContainer.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+          showInlineError(suiteOptionsContainer, data.error || 'Failed to query room availability.');
           return;
         }
 
-        if (data.suites.length === 0) {
-          suiteOptionsContainer.innerHTML = `
-            <div class="alert alert-info">
-              No suites available for ${guests} guest(s) between ${checkIn} and ${checkOut}. Please adjust your dates or party size.
-            </div>
-          `;
+        if (!data.suites || data.suites.length === 0) {
+          suiteOptionsContainer.innerHTML = '';
+          const infoAlert = document.createElement('div');
+          infoAlert.className = 'alert alert-info';
+          infoAlert.setAttribute('role', 'status');
+          const guestText = guests === 1 ? '1 guest' : `${guests} guests`;
+          infoAlert.textContent = `No suites are available for ${guestText} between ${checkIn} and ${checkOut}. Please adjust your dates or party size.`;
+          suiteOptionsContainer.appendChild(infoAlert);
           return;
         }
 
         renderSuiteOptions(data.suites, data.nights);
       } catch (err) {
-        suiteOptionsContainer.innerHTML = `<div class="alert alert-error">Unable to query live availability. Please check server connection.</div>`;
+        if (err.name === 'AbortError') return;
+        showInlineError(suiteOptionsContainer, 'Unable to query live availability. Please check server connectivity.');
       }
     };
 
+    // Render suite cards using DOM construction to prevent HTML injection (WP3.5)
     const renderSuiteOptions = (suites, nights) => {
-      let html = '<div style="display: grid; gap: 1.5rem;">';
+      suiteOptionsContainer.innerHTML = '';
+      suiteOptionsContainer.setAttribute('aria-live', 'polite');
+
+      const grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gap = '1.5rem';
+
       suites.forEach((s) => {
         const isSelected = state.roomTypeId === s.id;
-        html += `
-          <div class="room-card" style="border: 2px solid ${isSelected ? 'var(--color-gold)' : 'var(--color-border-hairline)'};">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
-              <div style="height: 220px; overflow: hidden;">
-                <img src="${s.featured_image}" alt="${s.name}" style="width: 100%; height: 100%; object-fit: cover;">
-              </div>
-              <div style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                  <div style="font-size: 0.72rem; color: var(--color-gold); text-transform: uppercase; font-weight: 600; letter-spacing: 0.1em; margin-bottom: 0.35rem;">
-                    ${s.view_type} · ${s.room_size_sqft} SQ FT
-                  </div>
-                  <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${s.name}</h3>
-                  <p style="font-size: 0.88rem; margin-bottom: 0.75rem;">${s.short_description}</p>
-                </div>
-                <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-border-hairline); padding-top: 1rem;">
-                  <div>
-                    <span style="font-family: var(--font-serif); font-size: 1.4rem; font-weight: 600;">${s.price_per_night_formatted}</span>
-                    <span style="font-size: 0.75rem; color: var(--color-text-muted);">/ night</span>
-                    <div style="font-size: 0.75rem; color: var(--color-gold);">Total (${nights} nights + 18% GST): ${s.calculated_total_formatted}</div>
-                  </div>
-                  <button type="button" class="btn btn-gold btn-sm select-suite-btn" data-id="${s.id}">
-                    Select Suite
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      html += '</div>';
-      suiteOptionsContainer.innerHTML = html;
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.style.border = isSelected ? '2px solid var(--color-gold)' : '2px solid var(--color-border-hairline)';
 
-      document.querySelectorAll('.select-suite-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const id = parseInt(btn.dataset.id, 10);
-          const suite = suites.find((x) => x.id === id);
-          selectSuite(suite);
+        const cardLayout = document.createElement('div');
+        cardLayout.style.display = 'grid';
+        cardLayout.style.gridTemplateColumns = 'repeat(auto-fit, minmax(260px, 1fr))';
+
+        // Image Column
+        const imgWrap = document.createElement('div');
+        imgWrap.style.height = '220px';
+        imgWrap.style.overflow = 'hidden';
+
+        const img = document.createElement('img');
+        img.src = s.featured_image || 'assets/images/branding/hero-facade.jpg';
+        img.alt = s.name;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        imgWrap.appendChild(img);
+
+        // Content Column
+        const contentWrap = document.createElement('div');
+        contentWrap.style.padding = '1.5rem';
+        contentWrap.style.display = 'flex';
+        contentWrap.style.flexDirection = 'column';
+        contentWrap.style.justifyContent = 'space-between';
+
+        const topMeta = document.createElement('div');
+        const badge = document.createElement('div');
+        badge.style.fontSize = '0.72rem';
+        badge.style.color = 'var(--color-gold-ink)';
+        badge.style.textTransform = 'uppercase';
+        badge.style.fontWeight = '600';
+        badge.style.letterSpacing = '0.1em';
+        badge.style.marginBottom = '0.35rem';
+        badge.textContent = `${s.view_type || 'Sanctuary View'} · ${s.room_size_sqft} SQ FT`;
+
+        const title = document.createElement('h3');
+        title.style.fontSize = '1.5rem';
+        title.style.marginBottom = '0.5rem';
+        title.textContent = s.name;
+
+        const desc = document.createElement('p');
+        desc.style.fontSize = '0.88rem';
+        desc.style.marginBottom = '0.75rem';
+        desc.textContent = s.short_description || '';
+
+        topMeta.appendChild(badge);
+        topMeta.appendChild(title);
+        topMeta.appendChild(desc);
+
+        // Price & Select Footer
+        const bottomRow = document.createElement('div');
+        bottomRow.style.display = 'flex';
+        bottomRow.style.alignItems = 'center';
+        bottomRow.style.justifyContent = 'space-between';
+        bottomRow.style.borderTop = '1px solid var(--color-border-hairline)';
+        bottomRow.style.paddingTop = '1rem';
+
+        const priceBlock = document.createElement('div');
+        const pricePerNight = document.createElement('span');
+        pricePerNight.style.fontFamily = 'var(--font-serif)';
+        pricePerNight.style.fontSize = '1.4rem';
+        pricePerNight.style.fontWeight = '600';
+        pricePerNight.textContent = s.price_per_night_formatted;
+
+        const perNightLabel = document.createElement('span');
+        perNightLabel.style.fontSize = '0.75rem';
+        perNightLabel.style.color = 'var(--color-text-muted)';
+        perNightLabel.textContent = ' / night';
+
+        const totalHint = document.createElement('div');
+        totalHint.style.fontSize = '0.75rem';
+        totalHint.style.color = 'var(--color-gold-ink)';
+        const nightText = nights === 1 ? '1 night' : `${nights} nights`;
+        totalHint.textContent = `Total (${nightText} + GST): ${s.calculated_total_formatted}`;
+
+        priceBlock.appendChild(pricePerNight);
+        priceBlock.appendChild(perNightLabel);
+        priceBlock.appendChild(totalHint);
+
+        const selectBtn = document.createElement('button');
+        selectBtn.type = 'button';
+        selectBtn.className = isSelected ? 'btn btn-gold btn-sm is-success' : 'btn btn-gold btn-sm';
+        selectBtn.textContent = isSelected ? 'Selected ✓' : 'Select Suite';
+        selectBtn.addEventListener('click', () => {
+          selectSuite(s);
         });
+
+        bottomRow.appendChild(priceBlock);
+        bottomRow.appendChild(selectBtn);
+
+        contentWrap.appendChild(topMeta);
+        contentWrap.appendChild(bottomRow);
+
+        cardLayout.appendChild(imgWrap);
+        cardLayout.appendChild(contentWrap);
+        card.appendChild(cardLayout);
+        grid.appendChild(card);
       });
+
+      suiteOptionsContainer.appendChild(grid);
     };
 
     const selectSuite = (suite) => {
@@ -169,21 +305,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fetchPricing = async (roomTypeId) => {
       try {
-        const res = await fetch(`api/calculate-pricing.php?room_type_id=${roomTypeId}&check_in=${encodeURIComponent(state.checkIn)}&check_out=${encodeURIComponent(state.checkOut)}`);
+        const url = `${baseUrl}/api/calculate-pricing.php?room_type_id=${roomTypeId}&check_in=${encodeURIComponent(state.checkIn)}&check_out=${encodeURIComponent(state.checkOut)}`;
+        const res = await fetch(url);
         const pricing = await res.json();
         if (pricing.success) {
           state.pricing = pricing;
           renderSummary();
           goToStep(2);
+        } else {
+          showInlineError(bookingFeedback, pricing.error || 'Error calculating reservation pricing.');
         }
       } catch (err) {
-        alert('Error calculating reservation pricing.');
+        showInlineError(bookingFeedback, 'Error connecting to reservation pricing server.');
       }
     };
 
     const renderSummary = () => {
       if (!state.pricing || !bookingSummaryCard) return;
       const p = state.pricing;
+      const nights = p.nights;
+      const nightLabel = nights === 1 ? '1 Night' : `${nights} Nights`;
+      const guestCount = state.guests;
+      const guestLabel = guestCount === 1 ? '1 Guest' : `${guestCount} Guests`;
+
       bookingSummaryCard.innerHTML = `
         <div style="background: #FFFFFF; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-sm); padding: 1.75rem; box-shadow: var(--shadow-card);">
           <h4 style="font-size: 1.3rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border-hairline); padding-bottom: 0.75rem;">
@@ -191,64 +335,79 @@ document.addEventListener('DOMContentLoaded', () => {
           </h4>
           <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.9rem; margin-bottom: 1.25rem;">
             <div style="display: flex; justify-content: space-between;">
-              <span class="text-muted">Suite</span>
-              <strong>${state.selectedSuite.name}</strong>
+              <span class="text-muted">Suite Category</span>
+              <strong>${escapeHTML(state.selectedSuite.name)}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
-              <span class="text-muted">Dates</span>
-              <span>${state.checkIn} to ${state.checkOut}</span>
+              <span class="text-muted">Stay Itinerary</span>
+              <span>${escapeHTML(state.checkIn)} to ${escapeHTML(state.checkOut)}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span class="text-muted">Duration</span>
-              <span>${p.nights} Night(s)</span>
+              <span>${nightLabel}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-              <span class="text-muted">Guests</span>
-              <span>${state.guests} Guest(s)</span>
+              <span class="text-muted">Party Size</span>
+              <span>${guestLabel}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-border-hairline); padding-top: 0.65rem;">
               <span class="text-muted">Room Subtotal</span>
-              <span>${p.subtotal_formatted}</span>
+              <span>${escapeHTML(p.subtotal_formatted)}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span class="text-muted">GST (${p.tax_rate}%)</span>
-              <span>${p.tax_amount_formatted}</span>
+              <span>${escapeHTML(p.tax_amount_formatted)}</span>
             </div>
             <div style="display: flex; justify-content: space-between; border-top: 2px solid var(--color-obsidian); padding-top: 0.75rem; font-size: 1.15rem;">
               <strong>Total (INR)</strong>
               <strong style="color: var(--color-text-main); font-family: var(--font-serif); font-size: 1.35rem;">
-                ${p.total_amount_formatted}
+                ${escapeHTML(p.total_amount_formatted)}
               </strong>
             </div>
           </div>
           <div style="font-size: 0.75rem; color: var(--color-text-muted); background: var(--color-parchment); padding: 0.75rem; border-radius: var(--radius-xs);">
-            ✓ Complimentary airport limousine transfer & 24h butler service included.
+            ✓ Daily bespoke breakfast & sanctuary wellness access included.
           </div>
         </div>
       `;
     };
 
     const goToStep = (stepNumber) => {
-      document.querySelectorAll('.wizard-step-pane').forEach((p) => (p.style.display = 'none'));
+      document.querySelectorAll('.wizard-step-pane').forEach((p) => {
+        p.style.display = 'none';
+      });
+
       document.querySelectorAll('.wizard-indicator').forEach((ind) => {
         const indNum = parseInt(ind.dataset.step, 10);
+        ind.classList.remove('active', 'completed');
+        ind.removeAttribute('aria-current');
+
         if (indNum === stepNumber) {
           ind.classList.add('active');
+          ind.setAttribute('aria-current', 'step');
         } else if (indNum < stepNumber) {
           ind.classList.add('completed');
-        } else {
-          ind.classList.remove('active', 'completed');
         }
       });
 
-      if (stepNumber === 1) step1.style.display = 'block';
-      if (stepNumber === 2) step2.style.display = 'block';
-      if (stepNumber === 3) step3.style.display = 'block';
+      let targetPane = null;
+      if (stepNumber === 1) { step1.style.display = 'block'; targetPane = step1; }
+      if (stepNumber === 2) { step2.style.display = 'block'; targetPane = step2; }
+      if (stepNumber === 3) { step3.style.display = 'block'; targetPane = step3; }
+
+      // Focus management: move focus to step heading for screen readers
+      if (targetPane) {
+        const heading = targetPane.querySelector('h2, h3, h4');
+        if (heading) {
+          heading.setAttribute('tabindex', '-1');
+          heading.focus();
+        }
+      }
 
       window.scrollTo({ top: bookingWizard.offsetTop - 80, behavior: 'smooth' });
     };
 
-    // Attach step listeners
+    // Attach step navigation listeners
     document.getElementById('searchAvailabilityBtn')?.addEventListener('click', fetchAvailableSuites);
     document.getElementById('backToStep1Btn')?.addEventListener('click', () => goToStep(1));
     document.getElementById('proceedToReviewBtn')?.addEventListener('click', () => {
@@ -257,21 +416,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const phone = document.getElementById('guestPhone').value.trim();
 
       if (!name || !email || !phone) {
-        alert('Please fill in your name, email, and phone number.');
+        showInlineError(bookingFeedback, 'Please fill in your full name, email address, and phone number.');
         return;
       }
+      bookingFeedback.innerHTML = '';
       goToStep(3);
     });
     document.getElementById('backToStep2Btn')?.addEventListener('click', () => goToStep(2));
 
-    // Submit Final Booking
+    // Submit Final Booking (Atomically via API with CSRF & Idempotency)
     document.getElementById('finalConfirmBookingBtn')?.addEventListener('click', async () => {
       const confirmBtn = document.getElementById('finalConfirmBookingBtn');
       confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Processing Imperial Reservation...';
+      confirmBtn.classList.add('is-loading');
+      confirmBtn.textContent = 'Securing Imperial Reservation...';
+
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const csrfInput = document.querySelector('input[name="csrf_token"]');
+      const csrfVal = (csrfMeta ? csrfMeta.content : (csrfInput ? csrfInput.value : ''));
 
       const payload = {
-        csrf_token: document.querySelector('input[name="csrf_token"]').value,
+        csrf_token: csrfVal,
+        idempotency_key: idempotencyKey,
         room_type_id: state.roomTypeId,
         check_in: state.checkIn,
         check_out: state.checkOut,
@@ -284,28 +450,34 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch('api/create-booking.php', {
+        const res = await fetch(`${baseUrl}/api/create-booking.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfVal
+          },
           body: JSON.stringify(payload)
         });
         const result = await res.json();
 
         if (result.success) {
-          window.location.href = `confirmation.php?ref=${encodeURIComponent(result.booking_reference)}`;
+          const redirectUrl = `${baseUrl}/confirmation.php?ref=${encodeURIComponent(result.booking_reference)}&token=${encodeURIComponent(result.access_token || '')}`;
+          window.location.href = redirectUrl;
         } else {
-          bookingFeedback.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+          showInlineError(bookingFeedback, result.error || 'Failed to complete booking.');
           confirmBtn.disabled = false;
+          confirmBtn.classList.remove('is-loading');
           confirmBtn.textContent = 'Confirm & Reserve Suite';
         }
       } catch (err) {
-        bookingFeedback.innerHTML = `<div class="alert alert-error">A communication error occurred. Please contact the concierge desk.</div>`;
+        showInlineError(bookingFeedback, 'A communication error occurred with the reservation server. Please contact concierge desk.');
         confirmBtn.disabled = false;
+        confirmBtn.classList.remove('is-loading');
         confirmBtn.textContent = 'Confirm & Reserve Suite';
       }
     });
 
-    // Check if URL has params (e.g. redirected from homepage)
+    // Populate initial inputs from URL query params (e.g. redirected from hero)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('check_in')) {
       document.getElementById('bookCheckIn').value = urlParams.get('check_in');

@@ -34,25 +34,26 @@ Adishiv distills these timeless architectural elements into a **contemporary, qu
 | **Canvas Dark** | Imperial Obsidian | `#0C0F12` | Deep rich background for preloader, footer, and midnight hero accents |
 | **Canvas Light** | Sandstone Silk | `#FBF9F5` | Primary editorial page background for daylight readability and warmth |
 | **Surface Off-Light** | Delhi Parchment | `#F3EFE6` | Room cards, subtle section alternating backgrounds, form field wells |
-| **Primary Brand Gold** | Aged Imperial Brass | `#C8A46B` | Primary CTAs, active indicators, borders, decorative hairline accents |
+| **Primary Brand Gold** | Aged Imperial Brass | `#C8A46B` | Primary CTAs, active indicators, borders, decorative hairline accents (dark surfaces) |
+| **Gold Ink (Light Surfaces)** | Deep Brass Ink | `#7A5C28` | Text & icons on light surfaces (passes AA: 5.9:1 on Sandstone, 5.4:1 on Parchment) |
 | **Luminous Gold** | Champagne Brass | `#DFBE85` | Hover states, button glow, focus rings, illuminated highlights |
 | **Heritage Accent** | Sandstone Terracotta | `#944C3A` | Subtle editorial taglines, badge accents, warm historical grounding |
 | **Heritage Garden** | Mughal Cypress | `#182A22` | Deep forest green for luxury wellness/spa highlights |
-| **Text Primary (Dark)** | Midnight Charcoal | `#14171A` | Main typography on light backgrounds (WCAG AAA compliant: 14.8:1) |
+| **Text Primary (Dark)** | Midnight Charcoal | `#14171A` | Main typography on light backgrounds (measured 17.1:1 on Sandstone) |
 | **Text Secondary** | Muted Slate | `#5C6470` | Secondary metadata, room specs, captions, timestamps |
 | **Border Subtle** | Antique Hairline | `rgba(200, 164, 107, 0.22)` | Subtle luxury dividers, card borders, table separators |
 
 ### 2.3 Typography Hierarchy
 - **Display Serif:** `Cormorant Garamond` (Google Font: weights 400, 500, 600, 700 + italic) — Used for H1/H2 headlines, room names, editorial quotes, and signature brand numbers.
 - **Body & Interface Sans:** `Plus Jakarta Sans` / `Manrope` (weights 300, 400, 500, 600, 700) — High-legibility geometric sans-serif for body copy, booking controls, form labels, and microcopy.
-- **Utility & Data:** `Cinzel` & tabular numerals for currency figures (`₹ 18,500`), dates, and reservation references (`ADI-2026-8942`).
+- **Utility & Data:** Tabular numerals for currency figures (`₹ 18,500`), dates, and reservation references (`ADI-2026-8942`).
 
 ### 2.4 Design Reference Breakdown & Synthesis
 1. **Left Coast (Preloader & Entry Choreography):**
    - *Key takeaway:* Elegant vector path-drawing animation + smooth curtain transition directly into the hero.
-   - *Adishiv application:* A bespoke Adishiv geometric monogram (`A` with Mughal arch motif) drawn via SVG `stroke-dasharray`, transitioning gracefully into the hotel facade view without sudden flashing or layout shifts.
+   - *Adishiv application:* A bespoke Adishiv geometric monogram (`A` with Mughal arch motif) drawn via SVG `stroke-dashoffset` (`pathLength="1"`), transitioning gracefully into the hotel facade view via a clip-path wipe (`inset(0 0 100% 0)`) without sudden flashing or layout shifts.
 2. **Haven Annecy (Hospitality Editorial Rhythm & Spacing):**
-   - *Key takeaway:* Generous whitespace, asymmetric photo collages, subtle typography badges ("Brunch time", "Imperial Verandah"), calm pacing.
+   - *Key takeaway:* Generous whitespace, asymmetric photo collages, subtle typography badges, calm pacing.
    - *Adishiv application:* Storytelling layout for dining, suites, and wellness experiences, treating photography like an art exhibition.
 3. **Qissa (Contrast, Typography & Menu Experience):**
    - *Key takeaway:* Midnight background contrast, Cormorant Garamond pairings, fullscreen luxury overlay navigation with numbered items (`01 Sanctuary`, `02 Suites`, `03 Dining`).
@@ -64,13 +65,13 @@ Adishiv distills these timeless architectural elements into a **contemporary, qu
 
 | Layer | Selected Technologies | Architectural Justification |
 | :--- | :--- | :--- |
-| **Frontend Core** | HTML5 Semantic, Modern CSS3 (Vanilla), Vanilla ES6+ JavaScript | Zero build-step dependencies, blistering fast TTFB, maximum maintainability and longevity. |
-| **Animation Engine** | GSAP 3.12+ (Timeline, ScrollTrigger, CustomEase) | Unrivaled 60fps performance, hardware acceleration, precise timeline orchestration. |
-| **Backend Core** | PHP 8.0+ (Vanilla Object-Oriented MVC/Service Pattern) | Native support across standard XAMPP/Apache/Nginx environments, lightweight and robust. |
-| **Database** | MySQL 5.7+ / 8.0+ / MariaDB 10.4+ (InnoDB Engine) | ACID compliance, row-level locking for atomic booking reservations, relational integrity. |
-| **Database Access** | PHP PDO with Prepared Statements | Complete immunity to SQL injection vulnerabilities; parameterized queries throughout. |
-| **Security Suite** | CSRF Tokens, Secure HttpOnly/SameSite Sessions, `htmlspecialchars()` escaping, strict regex input validation | Enterprise-grade defensive architecture. |
-| **Asset Delivery** | WebP/JPEG responsive images with `loading="lazy"`, SVG vectors for icons | Maximum visual fidelity with sub-100kb payload chunks. |
+| **Frontend Core** | HTML5 Semantic, Modern CSS3 (Vanilla), Vanilla ES6+ JavaScript | Zero build-step dependencies, fast TTFB, maximum maintainability and longevity. |
+| **Animation Engine** | Self-Hosted GSAP 3.12.5 & ScrollTrigger (in `assets/vendor/gsap/`) | Version-pinned 60fps performance without third-party CDN latency or outage risks. |
+| **Backend Core** | PHP 8.0+ (8.3 tested, Vanilla MVC/Service Pattern) | Native support across standard XAMPP/Apache/Nginx environments, lightweight and robust. |
+| **Database** | MySQL 8.0.16+ / MariaDB 10.6+ (InnoDB Engine) | CHECK constraints, strict SQL mode (`STRICT_ALL_TABLES`), ACID double-booking backstop. |
+| **Database Access** | PHP PDO with Prepared Statements (`EMULATE_PREPARES = false`) | Complete immunity to SQL injection vulnerabilities; parameterized queries throughout. |
+| **Security Suite** | CSRF Tokens, Secure HttpOnly/SameSite Sessions, `e()` escaping, rate limiting, access token authorization | Enterprise-grade defensive architecture conforming to India DPDP Act principles. |
+| **Asset Delivery** | High-fidelity editorial imagery with `loading="lazy"`, responsive CSS art direction | Bespoke visual assets with high-contrast text layers and optimized overlays. |
 
 ---
 
@@ -471,30 +472,38 @@ The Admin Dashboard (`/admin/`) provides a clean, information-dense management w
    - Integrated camera zoom-out hero reveal (`scale: 1.12 → 1.0`) synchronized with staggered letter/headline entrances (`y: 40 → 0, opacity: 0 → 1`).
    - Implemented returning visitor fast-track (`sessionStorage.getItem('adishiv_intro_seen')`) shortening entrance time to 400ms.
 2. **Coherent Motion & Interaction Language:**
-   - Imported GSAP 3.12.5 and ScrollTrigger via high-availability CDN in `includes/footer.php`.
-   - Built desktop magnetic button proximity physics with spring recovery in `assets/js/animations.js`.
-   - Added subtle scrubbed image parallax on hero and editorial showcases (`gsap.to(..., { yPercent: -15, scrollTrigger: { scrub: true } })`).
-   - Replaced basic cursor with a lerp-smoothed trailing ring cursor that dynamically scales on interactive buttons/links, and automatically disables on touch devices (`(pointer: coarse)`) and under `prefers-reduced-motion: reduce`.
-3. **Brute-Force Rate Limiting on Admin Login:**
-   - Added session and IP-keyed failed login tracking in `admin/login.php`.
-   - Enforces a 10-minute lockout after 5 consecutive failed authentication attempts to prevent automated credential stuffing.
-4. **Accessible Navigation & Lightbox Keyboard Trapping:**
-   - Upgraded `assets/js/navigation.js` to trap Tab cycling within the open navigation drawer and close cleanly on `Escape`, restoring focus to the hamburger trigger.
-   - Added `keydown` listener (`Escape`) and ARIA focus management to the gallery lightbox in `gallery.php`.
-5. **Component System Refactoring (Eliminated Inline Styles):**
-   - Transferred inline styles from `rooms.php`, `room-details.php`, and `booking.php` into reusable, tokenized CSS classes in `assets/css/components.css` (`.page-hero-banner`, `.filter-bar-wrap`, `.suites-responsive-grid`, `.suite-specs-grid`, `.spec-tile`, `.amenities-editorial-grid`, `.sticky-booking-card`, `.wizard-sticky-nav`, `.wizard-badge`).
-   - Removed inline `<style>` media queries and integrated `.lg-grid-details` and `.lg-grid-step2` into the shared stylesheet.
+   - Self-hosted GSAP 3.12.5 and ScrollTrigger locally in `assets/vendor/gsap/` (no CDN dependencies).
+   - Built desktop magnetic button proximity physics with spring recovery in `assets/js/animations.js` (clamped to 8px max travel).
+   - Added subtle scrubbed image parallax on hero and editorial showcases (≤ 6% travel).
+   - Upgraded cursor to a lerp-smoothed trailing ring with corrected `translate3d(x,y,0) translate(-50%,-50%)` centering, idle rAF cycle preservation, event delegation, and automatic deactivation on touch devices (`pointer: coarse`) and under `prefers-reduced-motion: reduce`.
+3. **Brute-Force Rate Limiting & Access Protection:**
+   - Added failed login throttling in `includes/auth.php` (5 attempts / 15 minutes with exponential backoff) and constant-time dummy verify for unknown emails.
+   - Confirmation lookup protected with 128-bit `access_token` or resident email verification to prevent voucher enumeration.
+4. **Accessible Navigation & Dialog Trapping:**
+   - Upgraded `assets/js/navigation.js` to manage `inert` on `<main>`, compensate scrollbar width to prevent layout shifts, handle BFCache resets via `pageshow`, and trap Tab cycling within the open navigation drawer with `Escape` listener.
+5. **Component System & Contrast Hardening:**
+   - Added `--color-gold-ink: #7A5C28` for light surfaces, passing WCAG AA contrast (5.9:1 on Sandstone, 5.4:1 on Parchment).
+   - Eliminated bare `outline:none` across inputs and buttons in favor of visible `:focus-visible` styling.
 
-### 14.10 Remaining Issues
-1. **Dynamic Content Separation:**
-   - While room types, amenities, and site settings are editable in the database, specific editorial copy on `dining.php` and `experiences.php` remains stored directly within HTML templates. Moving these into database tables or JSON content files would facilitate non-technical editing.
-2. **Automated End-to-End Visual Regression Suite:**
-   - Visual checks were verified via browser automation, but a continuous Playwright / BackstopJS regression runner is not yet wired into a local CI pipeline.
+---
 
-### 14.11 Deferred Improvements
-1. **Real-Time Payment Gateway Integration:**
-   - Payment gateway (Razorpay / Stripe) was explicitly identified as optional for Version 1 and is deferred until merchant credentials and API webhooks are provisioned by the hotel client. The system currently features "Pay at Hotel (Counter Check-in)" and "UPI / Net Banking Guarantee Voucher".
-2. **Automated Transactional Email Dispatch:**
-   - Email dispatch hooks are prepared; full SMTP or Resend API transmission is deferred to production deployment when domain SPF/DKIM DNS records are configured.
+## 15. DECISION LOG & VERIFICATION RECORD
+
+### 15.1 Architectural Decisions
+1. **Self-Hosted GSAP vs CDN:**
+   - *Decision:* Pin and bundle GSAP 3.12.5 core and ScrollTrigger inside `assets/vendor/gsap/`.
+   - *Rationale:* Luxury guest booking journeys must never stall due to external CDN outages, tracking blocker extensions, or third-party DNS latency. GreenSock Standard "No-Charge" license permits standard web application deployment without redistributing raw engine source in commercial SDKs.
+2. **Double-Booking Prevention (InnoDB Lock + Unique Constraint):**
+   - *Decision:* Two-tier concurrency safety combining `SELECT ... FOR UPDATE` with `booking_nights.UNIQUE(room_id, stay_date)`.
+   - *Rationale:* While row locks protect ordinary transaction sequencing, a hard database-level unique constraint acts as an unbreakable backstop against misbehaving workers or race conditions.
+3. **Guest Checkout vs Forced Account Creation:**
+   - *Decision:* For v1, allow streamlined guest reservations using cryptographically secure vouchers (`access_token` + reference + email verification) without forcing account registration prior to booking.
+   - *Rationale:* Mandatory account friction causes significant drop-offs in luxury hospitality. Guest confidentiality is maintained via tokenized lookups conforming to India DPDP Act principles.
+4. **Timezone Normalization (Asia/Kolkata):**
+   - *Decision:* Enforce `+05:30` (Asia/Kolkata) across both PHP runtime and MySQL session connection.
+   - *Rationale:* Hotel operations and check-in dates are tied to New Delhi's local calendar day. Using UTC in client scripts created 00:00–05:30 IST date discrepancy bugs where check-in dates defaulted one day early.
+5. **Indian GST Slabs (SAC 9963):**
+   - *Decision:* Compute tax on per-room-per-day tariff (≤ ₹7,500 = 5%, > ₹7,500 = 18%) in integer paise without floating point drift, displaying equal CGST and SGST splits.
+   - *Rationale:* Reflects statutory Indian luxury hospitality tax law while flagging that final corporate tax treatment, GSTIN assignment, and invoice numbering must be formally verified by the hotel's certified accountant.
 
 

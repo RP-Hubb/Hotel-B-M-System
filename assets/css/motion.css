@@ -1,16 +1,16 @@
 /**
  * Adishiv Luxury Hotel & Suites
- * Motion System: Preloader Choreography, Cursor, Transitions & Accessibility
+ * Master Motion System: Cinema-Grade Preloader, Viewport Reveals, Custom Cursor & A11y
  */
 
 /* ----------------------------------------------------------------------------
- * 1. SIGNATURE PRELOADER (Left Coast Reference Inspired)
+ * 1. SIGNATURE PRELOADER (WP6a Specification)
  * ---------------------------------------------------------------------------- */
 .preloader-curtain {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100dvh;
   background-color: var(--color-obsidian);
   z-index: var(--z-preloader);
   display: flex;
@@ -20,12 +20,12 @@
   color: var(--color-text-white);
   overflow: hidden;
   pointer-events: auto;
-  will-change: transform, clip-path, opacity;
+  clip-path: inset(0 0 0 0);
 }
 
 .preloader-monogram {
-  width: 140px;
-  height: 140px;
+  width: 130px;
+  height: 130px;
   margin-bottom: 2rem;
   position: relative;
 }
@@ -33,15 +33,16 @@
 .preloader-svg {
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 
 .preloader-path {
   stroke: var(--color-gold);
   stroke-width: 1.5;
-  stroke-dasharray: 600;
-  stroke-dashoffset: 600;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   fill: transparent;
-  transition: fill 0.6s ease;
+  transition: fill 0.4s var(--ease-cinematic);
 }
 
 .preloader-text-group {
@@ -49,18 +50,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .preloader-brand-title {
   font-family: var(--font-serif);
   font-size: clamp(1.8rem, 2.8vw, 3rem);
   font-weight: 500;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.38em;
   text-transform: uppercase;
   color: var(--color-text-white);
+  overflow: hidden;
+  display: flex;
+  gap: 0.2em;
+}
+
+.preloader-brand-title .char {
+  display: inline-block;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(110%);
 }
 
 .preloader-brand-sub {
@@ -75,7 +83,7 @@
 }
 
 .preloader-progress-container {
-  width: 200px;
+  width: 220px;
   height: 2px;
   background: rgba(255, 255, 255, 0.12);
   margin-top: 2rem;
@@ -89,21 +97,24 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 0%;
+  width: 100%;
   background: var(--color-gold);
-  transition: width 0.1s linear;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
 }
 
 .preloader-counter {
   font-family: var(--font-sans);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.6);
   margin-top: 0.75rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 /* ----------------------------------------------------------------------------
- * 2. CUSTOM DESKTOP CURSOR
+ * 2. CUSTOM DESKTOP CURSOR (WP6.8)
  * ---------------------------------------------------------------------------- */
 @media (pointer: fine) {
   .custom-cursor-dot {
@@ -116,33 +127,33 @@
     border-radius: 50%;
     pointer-events: none;
     z-index: var(--z-cursor);
-    transform: translate(-50%, -50%);
-    transition: opacity 0.2s, transform 0.1s ease;
+    opacity: 0;
+    transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+    transition: opacity 0.2s ease;
   }
 
   .custom-cursor-ring {
     position: fixed;
     top: 0;
     left: 0;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border: 1px solid var(--color-gold-muted);
     border-radius: 50%;
     pointer-events: none;
     z-index: var(--z-cursor);
-    transform: translate(-50%, -50%);
-    transition: width 0.25s ease-out, height 0.25s ease-out, border-color 0.25s, background-color 0.25s;
+    opacity: 0;
+    transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s, border-color 0.2s, background-color 0.2s;
   }
 
   .custom-cursor-ring.is-hover {
-    width: 60px;
-    height: 60px;
     border-color: var(--color-gold);
-    background-color: rgba(200, 164, 107, 0.08);
+    background-color: rgba(200, 164, 107, 0.12);
+    transform: translate3d(var(--cx, -100px), var(--cy, -100px), 0) translate(-50%, -50%) scale(1.6);
   }
 }
 
-/* Disabled on touch devices */
 @media (pointer: coarse) {
   .custom-cursor-dot, .custom-cursor-ring {
     display: none !important;
@@ -150,11 +161,57 @@
 }
 
 /* ----------------------------------------------------------------------------
- * 3. HERO ENTRANCE & SCROLL REVEALS
+ * 3. REVEAL SYSTEM (WP6.4)
+ * ---------------------------------------------------------------------------- */
+html.js:not(.reduced-motion) [data-reveal="fade-up"] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s var(--ease-cinematic), transform 0.7s var(--ease-cinematic);
+}
+
+html.js:not(.reduced-motion) [data-reveal="fade-up"].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+html.js:not(.reduced-motion) [data-reveal="image"] {
+  overflow: hidden;
+  clip-path: inset(8% 0 8% 0);
+  transition: clip-path 0.9s var(--ease-cinematic);
+}
+
+html.js:not(.reduced-motion) [data-reveal="image"].is-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+html.js:not(.reduced-motion) [data-reveal="image"] img {
+  transform: scale(1.12);
+  transition: transform 1.2s var(--ease-cinematic);
+}
+
+html.js:not(.reduced-motion) [data-reveal="image"].is-revealed img {
+  transform: scale(1.0);
+}
+
+html.js:not(.reduced-motion) [data-reveal="text"] {
+  overflow: hidden;
+}
+
+html.js:not(.reduced-motion) [data-reveal="text"] > * {
+  transform: translateY(110%);
+  transition: transform 0.8s var(--ease-cinematic);
+}
+
+html.js:not(.reduced-motion) [data-reveal="text"].is-revealed > * {
+  transform: translateY(0);
+}
+
+/* ----------------------------------------------------------------------------
+ * 4. HERO ENTRANCE SPECIFICATION (WP6.3)
  * ---------------------------------------------------------------------------- */
 .hero-editorial-wrap {
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,9 +225,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.65;
-  transform: scale(1.05);
-  transition: transform 1.8s var(--ease-cinematic);
+  opacity: 0.85;
+  transform: scale(1.14);
+  transform-origin: center center;
 }
 
 .hero-gradient-overlay {
@@ -178,10 +235,11 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(12, 15, 18, 0.45) 0%,
-    rgba(12, 15, 18, 0.6) 60%,
-    rgba(12, 15, 18, 0.95) 100%
+    rgba(12, 15, 18, 0.25) 0%,
+    rgba(12, 15, 18, 0.55) 60%,
+    rgba(12, 15, 18, 0.90) 100%
   );
+  pointer-events: none;
 }
 
 .hero-content {
@@ -189,10 +247,8 @@
   z-index: 10;
   text-align: center;
   max-width: 960px;
-  padding: 0 1.5rem;
+  padding: 6rem 1.5rem 7rem;
   color: var(--color-text-white);
-  padding-top: 5rem;
-  padding-bottom: 7rem;
 }
 
 .hero-headline {
@@ -208,20 +264,82 @@
 .hero-subheadline {
   font-family: var(--font-sans);
   font-size: var(--text-md);
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.88);
   max-width: 680px;
   margin: 0 auto 2.5rem;
   line-height: 1.7;
 }
 
 /* ----------------------------------------------------------------------------
- * 4. ACCESSIBILITY: PREFERS-REDUCED-MOTION
+ * 5. NAVIGATION OVERLAY STYLES & TRANSITIONS (WP6.5)
+ * ---------------------------------------------------------------------------- */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-obsidian);
+  z-index: var(--z-nav-overlay);
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 3.5rem;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.7s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.7s;
+  visibility: hidden;
+  overflow-y: auto;
+}
+
+.nav-overlay.is-active {
+  clip-path: inset(0 0 0 0);
+  visibility: visible;
+}
+
+.nav-menu-list:hover .nav-menu-item {
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.nav-menu-list .nav-menu-item:hover {
+  opacity: 1;
+}
+
+.nav-menu-item a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.8vw, 3.2rem);
+  color: #fff;
+  text-decoration: none;
+  padding: 0.4rem 0;
+}
+
+.nav-menu-item a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s var(--ease-cinematic);
+}
+
+.nav-menu-item a:hover::after,
+.nav-menu-item a:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ----------------------------------------------------------------------------
+ * 6. ACCESSIBILITY & REDUCED MOTION GATING (WP6.1, WP7)
  * ---------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 
@@ -231,5 +349,21 @@
 
   .custom-cursor-dot, .custom-cursor-ring {
     display: none !important;
+  }
+
+  [data-reveal], [data-reveal] img, [data-reveal] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  .nav-overlay {
+    clip-path: none !important;
+    transition: opacity 0.2s ease !important;
+    opacity: 0;
+  }
+
+  .nav-overlay.is-active {
+    opacity: 1 !important;
   }
 }

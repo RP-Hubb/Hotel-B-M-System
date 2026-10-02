@@ -1,15 +1,8 @@
 -- ============================================================================
--- ADISHIV LUXURY HOTEL & SUITES — DATABASE SCHEMA
--- Location: New Delhi, India | Currency: INR (₹)
--- Standard: MySQL 5.7+ / MySQL 8.0+ / MariaDB 10.4+
+-- ADISHIV LUXURY HOTEL & SUITES — DATABASE SCHEMA (DDL ONLY)
+-- Minimum Database Versions: MySQL 8.0.16+ / MariaDB 10.6+
 -- Engine: InnoDB | Character Set: utf8mb4 | Collation: utf8mb4_unicode_ci
 -- ============================================================================
-
-CREATE DATABASE IF NOT EXISTS `adishiv_hotel` 
-CHARACTER SET utf8mb4 
-COLLATE utf8mb4_unicode_ci;
-
-USE `adishiv_hotel`;
 
 -- ----------------------------------------------------------------------------
 -- 1. USERS & STAFF AUTHENTICATION TABLE
@@ -43,7 +36,6 @@ CREATE TABLE IF NOT EXISTS `room_types` (
     `bed_type` VARCHAR(60) NOT NULL DEFAULT 'King Bed',
     `room_size_sqft` SMALLINT UNSIGNED NOT NULL DEFAULT 450,
     `view_type` VARCHAR(80) NOT NULL DEFAULT 'Imperial Courtyard View',
-    `amenities_json` JSON NULL, -- Fast caching of amenity IDs/slugs
     `featured_image` VARCHAR(255) NOT NULL,
     `sort_order` TINYINT UNSIGNED NOT NULL DEFAULT 0,
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
@@ -55,12 +47,13 @@ CREATE TABLE IF NOT EXISTS `room_types` (
 
 -- ----------------------------------------------------------------------------
 -- 3. PHYSICAL ROOMS INVENTORY
+-- Note: 'floor' is VARCHAR(40) to accommodate multi-word floor titles
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `rooms` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `room_number` VARCHAR(20) NOT NULL UNIQUE,
     `room_type_id` INT UNSIGNED NOT NULL,
-    `floor` VARCHAR(20) NOT NULL DEFAULT 'Ground',
+    `floor` VARCHAR(40) NOT NULL DEFAULT 'Ground',
     `status` ENUM('available', 'occupied', 'maintenance', 'housekeeping') NOT NULL DEFAULT 'available',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -71,7 +64,27 @@ CREATE TABLE IF NOT EXISTS `rooms` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 4. ROOM GALLERY IMAGES
+-- 4. OUT-OF-SERVICE ROOM BLOCKS (MAINTENANCE / DOWNTIME RANGES)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `room_blocks` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `room_id` INT UNSIGNED NOT NULL,
+    `start_date` DATE NOT NULL,
+    `end_date` DATE NOT NULL,
+    `reason` VARCHAR(255) NOT NULL,
+    `created_by` INT UNSIGNED NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_room_blocks_room`
+        FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_room_blocks_user`
+        FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+    INDEX `idx_room_blocks_dates` (`room_id`, `start_date`, `end_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- 5. ROOM GALLERY IMAGES
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `room_images` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -87,7 +100,7 @@ CREATE TABLE IF NOT EXISTS `room_images` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 5. AMENITIES CATALOG
+-- 6. AMENITIES CATALOG
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `amenities` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -95,13 +108,13 @@ CREATE TABLE IF NOT EXISTS `amenities` (
     `name` VARCHAR(100) NOT NULL,
     `category` ENUM('room', 'wellness', 'dining', 'technology', 'service') NOT NULL DEFAULT 'room',
     `description` VARCHAR(255) NULL,
-    `icon` VARCHAR(60) NOT NULL DEFAULT 'feather-star', -- Icon class name
+    `icon` VARCHAR(60) NOT NULL DEFAULT 'feather-star',
     `is_highlight` TINYINT(1) NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 6. ROOM TYPE AMENITIES (MANY-TO-MANY PIVOT)
+-- 7. ROOM TYPE AMENITIES (MANY-TO-MANY PIVOT)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `room_type_amenities` (
     `room_type_id` INT UNSIGNED NOT NULL,
@@ -116,13 +129,15 @@ CREATE TABLE IF NOT EXISTS `room_type_amenities` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 7. BOOKINGS MASTER TABLE
+-- 8. BOOKINGS MASTER TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `bookings` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `booking_reference` VARCHAR(30) NOT NULL UNIQUE, -- e.g. ADI-2026-8942
-    `user_id` INT UNSIGNED NULL, -- NULL if booked as guest checkout
-    `room_id` INT UNSIGNED NULL, -- Physical room allocated (assigned on booking or check-in)
+    `booking_reference` VARCHAR(30) NOT NULL UNIQUE,
+    `idempotency_key` VARCHAR(64) NULL UNIQUE,
+    `access_token` VARCHAR(64) NULL UNIQUE,
+    `user_id` INT UNSIGNED NULL,
+    `room_id` INT UNSIGNED NULL,
     `room_type_id` INT UNSIGNED NOT NULL,
     `check_in` DATE NOT NULL,
     `check_out` DATE NOT NULL,
@@ -130,10 +145,13 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     `guests_count` TINYINT UNSIGNED NOT NULL DEFAULT 1,
     `price_per_night` DECIMAL(10, 2) NOT NULL,
     `subtotal_amount` DECIMAL(10, 2) NOT NULL,
-    `tax_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00, -- 18% GST standard in India
+    `tax_rate` DECIMAL(5, 2) NOT NULL DEFAULT 18.00,
+    `tax_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     `total_amount` DECIMAL(10, 2) NOT NULL,
+    `currency` VARCHAR(10) NOT NULL DEFAULT 'INR',
     `special_requests` TEXT NULL,
-    `status` ENUM('confirmed', 'checked_in', 'checked_out', 'cancelled') NOT NULL DEFAULT 'confirmed',
+    `status` ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled', 'no_show', 'expired') NOT NULL DEFAULT 'confirmed',
+    `hold_expires_at` DATETIME NULL,
     `cancellation_reason` VARCHAR(255) NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -148,11 +166,47 @@ CREATE TABLE IF NOT EXISTS `bookings` (
         ON DELETE RESTRICT ON UPDATE CASCADE,
     INDEX `idx_bookings_dates` (`check_in`, `check_out`),
     INDEX `idx_bookings_ref` (`booking_reference`),
-    INDEX `idx_bookings_status` (`status`)
+    INDEX `idx_bookings_status` (`status`),
+    INDEX `idx_bookings_token` (`access_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 8. BOOKING PRIMARY & ADDITIONAL GUESTS
+-- 9. BOOKING NIGHTS LEDGER (DATABASE-LEVEL DOUBLE-BOOKING BACKSTOP)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `booking_nights` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `booking_id` INT UNSIGNED NOT NULL,
+    `room_id` INT UNSIGNED NOT NULL,
+    `stay_date` DATE NOT NULL,
+    CONSTRAINT `fk_booking_nights_booking` 
+        FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_booking_nights_room` 
+        FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE KEY `uniq_room_stay_date` (`room_id`, `stay_date`),
+    INDEX `idx_booking_nights_stay` (`stay_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- 10. BOOKING STATUS TRANSITION AUDIT TRAIL
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `booking_events` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `booking_id` INT UNSIGNED NOT NULL,
+    `from_status` VARCHAR(30) NULL,
+    `to_status` VARCHAR(30) NOT NULL,
+    `actor` VARCHAR(120) NOT NULL DEFAULT 'system',
+    `note` VARCHAR(255) NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_booking_events_booking` 
+        FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX `idx_booking_events_bid` (`booking_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- 11. BOOKING PRIMARY & ADDITIONAL GUESTS
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `booking_guests` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -160,8 +214,6 @@ CREATE TABLE IF NOT EXISTS `booking_guests` (
     `name` VARCHAR(120) NOT NULL,
     `email` VARCHAR(150) NOT NULL,
     `phone` VARCHAR(30) NOT NULL,
-    `id_type` VARCHAR(50) NULL, -- 'Aadhaar', 'Passport', 'Driving License'
-    `id_number` VARCHAR(50) NULL,
     `city` VARCHAR(80) NULL,
     `country` VARCHAR(80) NOT NULL DEFAULT 'India',
     `is_primary` TINYINT(1) NOT NULL DEFAULT 1,
@@ -173,7 +225,7 @@ CREATE TABLE IF NOT EXISTS `booking_guests` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 9. PAYMENTS LEDGER (Structured for hotel counter & future gateway)
+-- 12. PAYMENTS LEDGER
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `payments` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -193,7 +245,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 10. CONTACT & ENQUIRY MESSAGES
+-- 13. CONTACT & ENQUIRY MESSAGES
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `contact_messages` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -209,8 +261,7 @@ CREATE TABLE IF NOT EXISTS `contact_messages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- 11. HOTEL SETTINGS & DYNAMIC CONFIGURATION
--- Allows modifying phone, email, address, tax rate without editing code
+-- 14. HOTEL SETTINGS & DYNAMIC CONFIGURATION
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `site_settings` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -222,63 +273,15 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
--- SEED INITIAL CONFIGURATION DATA
+-- 15. RATE LIMITS LEDGER (IP & ACTION THROTTLING)
 -- ----------------------------------------------------------------------------
-INSERT INTO `site_settings` (`setting_key`, `setting_value`, `setting_group`, `description`) VALUES
-('hotel_name', 'Adishiv Hotel & Suites', 'general', 'Official brand name'),
-('hotel_tagline', 'Sanctuary in the Imperial Capital', 'general', 'Editorial tagline'),
-('hotel_location', 'New Delhi, India', 'general', 'City and country'),
-('hotel_address', '14 Imperial Boulevard, Diplomatic Enclave, Chanakyapuri, New Delhi 110021, India', 'general', 'Physical address'),
-('hotel_phone', '+91 11 4982 7700', 'contact', 'Primary concierge phone'),
-('hotel_email', 'concierge@adishivhotel.com', 'contact', 'Concierge email'),
-('currency_symbol', '₹', 'localization', 'Currency display symbol'),
-('currency_code', 'INR', 'localization', 'Currency standard ISO code'),
-('tax_rate_percent', '18.00', 'billing', 'Goods and Services Tax (GST) percentage'),
-('check_in_time', '14:00', 'policy', 'Standard check-in time'),
-('check_out_time', '11:00', 'policy', 'Standard check-out time')
-ON DUPLICATE KEY UPDATE `updated_at` = CURRENT_TIMESTAMP;
-
--- ----------------------------------------------------------------------------
--- SEED AMENITIES
--- ----------------------------------------------------------------------------
-INSERT INTO `amenities` (`code`, `name`, `category`, `description`, `icon`, `is_highlight`) VALUES
-('wifi', 'Complimentary High-Speed Wi-Fi 6', 'technology', 'Gigabit fibre internet in all suites and gardens', 'wifi', 1),
-('butler', '24-Hour Imperial Butler Service', 'service', 'Dedicated private concierge and personal butler', 'bell', 1),
-('spa', 'Ayurvedic & Modern Wellness Spa', 'wellness', 'Bespoke herbal therapies and thermal hydrotherapy', 'feather', 1),
-('dining', 'Aura Fine Dining Restaurant', 'dining', 'Award-winning modern North Indian and pan-Asian cuisine', 'coffee', 1),
-('pool', 'Heated Marble Courtyard Pool', 'wellness', 'Temperature controlled outdoor swimming pool with daybeds', 'droplet', 1),
-('gym', 'Technogym Fitness Studio', 'wellness', 'State-of-the-art cardiovascular and strength equipment', 'activity', 0),
-('valet', 'Private Chauffeur & Valet Parking', 'service', 'Airport limousine transfers and secure subterranean parking', 'compass', 1),
-('bar', 'The Peacock Library Bar', 'dining', 'Curated single malts, botanical gins, and artisanal cocktails', 'glass', 0)
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
-
--- ----------------------------------------------------------------------------
--- SEED INITIAL LUXURY ROOM TYPES FOR ADISHIV
--- ----------------------------------------------------------------------------
-INSERT INTO `room_types` (`slug`, `name`, `short_description`, `description`, `price_per_night`, `max_guests`, `bed_type`, `room_size_sqft`, `view_type`, `featured_image`, `sort_order`) VALUES
-('deluxe-verandah-room', 'Deluxe Verandah Room', 'Serene sanctuary with handcrafted teak furnishings and private garden verandah.', 'The Deluxe Verandah Room offers an intimate retreat amidst the bustling capital. Featuring rich hardwood floors, Indian brass accents, Italian marble ensuite bathroom with walk-in rain shower, and a private sunlit balcony looking out upon fragrant frangipani courtyards.', 18500.00, 2, 'King Bed', 480, 'Private Courtyard & Garden View', 'assets/images/rooms/deluxe-verandah.jpg', 1),
-
-('imperial-heritage-suite', 'Imperial Heritage Suite', 'Expansive suite blending Mughal architectural motifs with contemporary luxury.', 'Embodying Delhi''s regal history, the Imperial Heritage Suite features an expansive living salon, bespoke handcrafted headboard with brass inlay, a freestanding oval marble soaking tub, walk-in dressing wardrobe, and personalized 24-hour butler assistance.', 32000.00, 3, 'King Bed + Daybed', 780, 'Reflecting Pool & Mughal Garden View', 'assets/images/rooms/imperial-suite.jpg', 2),
-
-('the-adishiv-presidential-residence', 'The Adishiv Presidential Residence', 'The pinnacle of bespoke hospitality with private terrace pool and dining salon.', 'Designed for heads of state, diplomats, and discerning connoisseurs, our signature Presidential Residence encompasses a panoramic wraparound terrace with heated plunge pool, eight-guest dining salon, pantry kitchen, private study, and grand master bedroom overlooking the diplomatic greens.', 75000.00, 4, 'Emperor King Bed', 1650, 'Panoramic Lutyens Skyline & Forest View', 'assets/images/rooms/presidential-residence.jpg', 3)
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
-
--- ----------------------------------------------------------------------------
--- SEED PHYSICAL ROOM INVENTORY
--- ----------------------------------------------------------------------------
-INSERT INTO `rooms` (`room_number`, `room_type_id`, `floor`, `status`) VALUES
-('101', 1, 'First Floor', 'available'),
-('102', 1, 'First Floor', 'available'),
-('103', 1, 'First Floor', 'available'),
-('201', 2, 'Second Floor', 'available'),
-('202', 2, 'Second Floor', 'available'),
-('301', 3, 'Third Floor Penthouse', 'available')
-ON DUPLICATE KEY UPDATE `status` = VALUES(`status`);
-
--- ----------------------------------------------------------------------------
--- SEED DEFAULT ADMIN USER
--- Password hash for 'Admin@Adishiv2026' generated via password_hash('Admin@Adishiv2026', PASSWORD_BCRYPT)
--- ----------------------------------------------------------------------------
-INSERT INTO `users` (`name`, `email`, `password_hash`, `phone`, `role`, `status`) VALUES
-('Adishiv Head Concierge', 'admin@adishivhotel.com', '$2y$10$w8T9bOa8Y7mZ7KjV4fI7xe6aE.vE83Xn8bYm3e69VbTzLz94yKqfa', '+91 11 4982 7701', 'admin', 'active')
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `action_key` VARCHAR(100) NOT NULL,
+    `ip_address` VARCHAR(45) NOT NULL,
+    `attempt_count` INT UNSIGNED NOT NULL DEFAULT 1,
+    `first_attempt_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `last_attempt_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uniq_action_ip` (`action_key`, `ip_address`),
+    INDEX `idx_rate_limits_action` (`action_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

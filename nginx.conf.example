@@ -1,0 +1,66 @@
+# ==============================================================================
+# Adishiv Luxury Hotel & Suites - Nginx Production Configuration Snippet
+# ==============================================================================
+
+server {
+    listen 80;
+    server_name hotel.adishivhotel.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name hotel.adishivhotel.com;
+
+    # SSL Certificates
+    ssl_certificate /etc/letsencrypt/live/hotel.adishivhotel.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/hotel.adishivhotel.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Set document root strictly to public/
+    root /var/www/adishiv-hotel/public;
+    index index.php index.html;
+
+    # Security Headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # Deny access to sensitive files and hidden files
+    location ~ /\.(?!well-known).* {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    location ~ \.(sql|md|log|ini|sh|bak)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Static Assets Caching
+    location ~* \.(css|js|jpg|jpeg|png|webp|avif|svg|woff2|woff|ttf|ico)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # PHP-FPM FastCGI Handler
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param APP_ENV production;
+        fastcgi_param APP_DEBUG false;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+}

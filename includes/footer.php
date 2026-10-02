@@ -73,9 +73,9 @@
       </div>
 
       <!-- Footer Bottom -->
-      <div class="footer-bottom">
+      <div class="footer-bottom" style="color: rgba(255, 255, 255, 0.75);">
         <div>
-          © <?= date('Y') ?> Adishiv Hotel & Suites. All rights reserved. Built for discerning luxury travelers.
+          © <?= date('Y') ?> Adishiv Hotel & Suites. All rights reserved.
         </div>
         <div style="display: flex; gap: 1.5rem;">
           <span>Currency: INR (₹)</span>
@@ -86,11 +86,12 @@
     </div>
   </footer>
 
-  <!-- GSAP Animation Engine & ScrollTrigger -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <!-- GSAP Animation Engine & ScrollTrigger (Self-Hosted, WP6) -->
+  <script src="<?= asset_url('assets/vendor/gsap/gsap.min.js') ?>"></script>
+  <script src="<?= asset_url('assets/vendor/gsap/ScrollTrigger.min.js') ?>"></script>
 
-  <!-- Core JavaScript Modules -->
+  <!-- Core JavaScript Framework & Motion Architecture -->
+  <script src="<?= asset_url('assets/js/core.js') ?>"></script>
   <script src="<?= asset_url('assets/js/preloader.js') ?>"></script>
   <script src="<?= asset_url('assets/js/navigation.js') ?>"></script>
   <script src="<?= asset_url('assets/js/animations.js') ?>"></script>

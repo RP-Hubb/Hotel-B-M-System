@@ -56,6 +56,25 @@ $currentUser = current_user();
   <link rel="stylesheet" href="<?= asset_url('assets/css/base.css') ?>">
   <link rel="stylesheet" href="<?= asset_url('assets/css/components.css') ?>">
   <link rel="stylesheet" href="<?= asset_url('assets/css/motion.css') ?>">
+
+  <meta name="csrf-token" content="<?= csrf_token() ?>">
+  <script>
+    document.documentElement.classList.add('js');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('reduced-motion');
+    }
+    window.APP = {
+      baseUrl: '<?= rtrim(APP_URL, '/') ?>',
+      csrf: '<?= csrf_token() ?>',
+      today: '<?= (new DateTime('now', new DateTimeZone('Asia/Kolkata')))->format('Y-m-d') ?>'
+    };
+  </script>
+  <noscript>
+    <style>
+      .preloader-curtain { display: none !important; }
+      [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+    </style>
+  </noscript>
 </head>
 <body>
   <!-- Accessible Skip Link -->
@@ -65,26 +84,34 @@ $currentUser = current_user();
   <div class="custom-cursor-dot" aria-hidden="true"></div>
   <div class="custom-cursor-ring" aria-hidden="true"></div>
 
-  <!-- Left Coast Inspired Signature Preloader Curtain -->
-  <div class="preloader-curtain" id="adishivPreloader" aria-hidden="true">
+  <!-- Signature Preloader Curtain (WP6a) -->
+  <div class="preloader-curtain" id="adishivPreloader" aria-hidden="true" inert>
     <div class="preloader-monogram">
       <svg class="preloader-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Mughal Arch Geometry & A Monogram -->
-        <path class="preloader-path" d="M15 90V45C15 25 35 10 50 10C65 10 85 25 85 45V90M50 10V90M25 60H75M35 75L50 55L65 75" />
+        <!-- Mughal Arch Geometry & A Monogram with Normalized PathLength -->
+        <path class="preloader-path" pathLength="1" d="M15 90V45C15 25 35 10 50 10C65 10 85 25 85 45V90M50 10V90M25 60H75M35 75L50 55L65 75" />
       </svg>
     </div>
     <div class="preloader-text-group">
-      <div class="preloader-brand-title">A D I S H I V</div>
+      <div class="preloader-brand-title" aria-label="Adishiv">
+        <span class="char">A</span>
+        <span class="char">D</span>
+        <span class="char">I</span>
+        <span class="char">S</span>
+        <span class="char">H</span>
+        <span class="char">I</span>
+        <span class="char">V</span>
+      </div>
       <div class="preloader-brand-sub">New Delhi · Sanctuary in the Imperial Capital</div>
       <div class="preloader-progress-container">
         <div class="preloader-progress-bar"></div>
       </div>
-      <div class="preloader-counter">00 / 100</div>
+      <div class="preloader-counter" role="status" aria-live="polite">00 / 100</div>
     </div>
   </div>
 
   <!-- Global Luxury Header -->
-  <header class="site-header" role="banner">
+  <header class="site-header <?= !empty($headerLight) ? 'site-header--light' : '' ?>" role="banner">
     <div class="container">
       <!-- Left: Fullscreen Menu Trigger -->
       <button type="button" class="menu-trigger" aria-expanded="false" aria-controls="navOverlay" aria-label="Open luxury navigation menu">
@@ -105,11 +132,11 @@ $currentUser = current_user();
       <!-- Right: Navigation Links & Reserve Button -->
       <div class="header-actions">
         <nav aria-label="Primary Navigation" class="header-nav-links">
-          <a href="<?= asset_url('rooms.php') ?>" class="<?= $currentNav === 'rooms' ? 'text-gold' : '' ?>">Suites</a>
-          <a href="<?= asset_url('dining.php') ?>" class="<?= $currentNav === 'dining' ? 'text-gold' : '' ?>">Dining</a>
-          <a href="<?= asset_url('experiences.php') ?>" class="<?= $currentNav === 'experiences' ? 'text-gold' : '' ?>">Wellness</a>
-          <a href="<?= asset_url('about.php') ?>" class="<?= $currentNav === 'about' ? 'text-gold' : '' ?>">The Heritage</a>
-          <a href="<?= asset_url('contact.php') ?>" class="<?= $currentNav === 'contact' ? 'text-gold' : '' ?>">Concierge</a>
+          <a href="<?= asset_url('rooms.php') ?>" class="<?= $currentNav === 'rooms' ? 'text-gold' : '' ?>" <?= $currentNav === 'rooms' ? 'aria-current="page"' : '' ?>>Suites</a>
+          <a href="<?= asset_url('dining.php') ?>" class="<?= $currentNav === 'dining' ? 'text-gold' : '' ?>" <?= $currentNav === 'dining' ? 'aria-current="page"' : '' ?>>Dining</a>
+          <a href="<?= asset_url('experiences.php') ?>" class="<?= $currentNav === 'experiences' ? 'text-gold' : '' ?>" <?= $currentNav === 'experiences' ? 'aria-current="page"' : '' ?>>Wellness</a>
+          <a href="<?= asset_url('about.php') ?>" class="<?= $currentNav === 'about' ? 'text-gold' : '' ?>" <?= $currentNav === 'about' ? 'aria-current="page"' : '' ?>>The Heritage</a>
+          <a href="<?= asset_url('contact.php') ?>" class="<?= $currentNav === 'contact' ? 'text-gold' : '' ?>" <?= $currentNav === 'contact' ? 'aria-current="page"' : '' ?>>Concierge</a>
           <?php if (is_logged_in()): ?>
             <?php if (is_admin()): ?>
               <a href="<?= asset_url('admin/index.php') ?>" class="text-gold" style="font-weight: 700;">Admin</a>
@@ -124,14 +151,14 @@ $currentUser = current_user();
     </div>
   </header>
 
-  <!-- Fullscreen Luxury Overlay Drawer Menu (Qissa Inspired) -->
-  <nav class="nav-overlay" id="navOverlay" aria-label="Fullscreen Navigation" aria-hidden="true">
+  <!-- Fullscreen Luxury Overlay Drawer Menu (WP6.5) -->
+  <nav class="nav-overlay" id="navOverlay" role="dialog" aria-modal="true" aria-label="Fullscreen Navigation" aria-hidden="true">
     <div class="nav-overlay-header">
       <a href="<?= asset_url('index.php') ?>" class="brand-logo" style="text-align: left; align-items: flex-start;">
         <span class="brand-title">Adishiv</span>
         <span class="brand-subtitle">New Delhi · Luxury Hospitality</span>
       </a>
-      <button type="button" class="nav-close-btn" aria-label="Close navigation menu">
+      <button type="button" class="nav-close-btn" aria-label="Close navigation menu" data-magnetic="true">
         <span>✕</span>
         <span>Close</span>
       </button>

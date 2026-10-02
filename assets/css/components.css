@@ -11,20 +11,48 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 84px;
+  height: 80px;
   z-index: var(--z-header);
-  transition: background-color var(--transition-normal), backdrop-filter var(--transition-normal), height var(--transition-normal), border-color var(--transition-normal);
+  transition: background-color var(--transition-normal), backdrop-filter var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
   display: flex;
   align-items: center;
   border-bottom: 1px solid transparent;
 }
 
 .site-header.scrolled {
-  background-color: rgba(12, 15, 18, 0.92);
+  background-color: rgba(12, 15, 18, 0.94);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  height: 72px;
   border-bottom: 1px solid var(--color-border-dark);
+}
+
+/* Light header variant for pages without dark hero (WP4.5) */
+.site-header--light:not(.scrolled) {
+  background-color: rgba(251, 249, 245, 0.95);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.site-header--light:not(.scrolled) .brand-title {
+  color: var(--color-obsidian);
+}
+
+.site-header--light:not(.scrolled) .brand-subtitle {
+  color: var(--color-gold-ink);
+}
+
+.site-header--light:not(.scrolled) .menu-trigger {
+  color: var(--color-obsidian);
+  border-color: rgba(12, 15, 18, 0.2);
+}
+
+.site-header--light:not(.scrolled) .header-nav-links a {
+  color: var(--color-text-main);
+}
+
+.site-header--light:not(.scrolled) .header-nav-links a:hover,
+.site-header--light:not(.scrolled) .header-nav-links a[aria-current="page"] {
+  color: var(--color-gold-ink);
 }
 
 .site-header .container {
@@ -33,7 +61,7 @@
   justify-content: space-between;
 }
 
-/* Header Left: Menu Trigger */
+/* Header Left: Menu Trigger (Mobile & Tablet) */
 .menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -50,6 +78,12 @@
   letter-spacing: 0.1em;
   cursor: pointer;
   transition: all var(--transition-fast);
+}
+
+@media (min-width: 992px) {
+  .menu-trigger {
+    display: none; /* Hide drawer trigger on desktop when inline links show (WP4.5) */
+  }
 }
 
 .menu-trigger:hover {
@@ -262,9 +296,63 @@
   border-radius: var(--radius-xs);
   cursor: pointer;
   text-decoration: none;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
   border: 1px solid transparent;
+  white-space: nowrap;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.35s var(--ease-cinematic), opacity 0.35s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  transform: scaleX(1);
+  transform-origin: left center;
+  opacity: 0.08;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.btn[disabled], .btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn.is-loading {
+  color: transparent !important;
+  pointer-events: none;
+  position: relative;
+}
+
+.btn.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  color: var(--color-obsidian);
 }
 
 .btn-gold {
@@ -276,8 +364,6 @@
 .btn-gold:hover {
   background-color: var(--color-gold-light);
   border-color: var(--color-gold-light);
-  box-shadow: 0 0 20px rgba(200, 164, 107, 0.4);
-  transform: translateY(-2px);
 }
 
 .btn-outline-gold {
@@ -289,7 +375,6 @@
 .btn-outline-gold:hover {
   background-color: var(--color-gold);
   color: var(--color-obsidian);
-  transform: translateY(-2px);
 }
 
 .btn-dark {
@@ -302,7 +387,6 @@
   background-color: var(--color-obsidian-soft);
   border-color: var(--color-gold);
   color: var(--color-gold);
-  transform: translateY(-2px);
 }
 
 .btn-sm {
@@ -376,8 +460,13 @@
   font-size: var(--text-sm);
   font-weight: 500;
   width: 100%;
-  outline: none;
   cursor: pointer;
+}
+
+.booking-input:focus-visible, .booking-select:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .booking-input[type="date"]::-webkit-calendar-picker-indicator {
@@ -530,7 +619,8 @@
 }
 
 .form-control:focus {
-  outline: none;
+  outline: 2px solid var(--color-gold);
+  outline-offset: 1px;
   border-color: var(--color-gold);
   box-shadow: 0 0 0 3px var(--color-gold-glow);
 }
@@ -1053,5 +1143,34 @@ textarea.form-control {
   }
 }
 
+/* ----------------------------------------------------------------------------
+ * 10. ANIMATIONS & ACCESSIBILITY UTILITIES (WP5.5)
+ * ---------------------------------------------------------------------------- */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
+.skeleton-loader {
+  background: linear-gradient(90deg, #F3EFE6 25%, #E7E2D6 50%, #F3EFE6 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s infinite;
+  border-radius: var(--radius-xs);
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
