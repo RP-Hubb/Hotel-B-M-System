@@ -73,8 +73,16 @@ try {
 
 } catch (Throwable $e) {
     error_log("API check-availability error: " . $e->getMessage());
+    $isDbErr = str_contains($e->getMessage(), 'Database Connection') 
+            || str_contains($e->getMessage(), 'SQLSTATE')
+            || str_contains($e->getMessage(), 'Connection refused');
+    if ((defined('APP_DEBUG') && APP_DEBUG) || $isDbErr) {
+        $errorMessage = 'Database connection error. Please ensure the MySQL service is started in XAMPP. (' . $e->getMessage() . ')';
+    } else {
+        $errorMessage = 'Inventory availability service is temporarily unavailable. Please try again shortly.';
+    }
     json_response([
         'success' => false,
-        'error' => 'Inventory availability service is temporarily unavailable. Please try again shortly.'
+        'error' => $errorMessage
     ], 503);
 }
