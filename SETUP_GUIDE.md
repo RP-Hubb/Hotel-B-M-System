@@ -5,7 +5,7 @@ If you are trying to run this project and getting stuck, follow these steps exac
 ---
 
 ## Step 1: Install XAMPP (If you don't have it)
-1. Download **XAMPP for Windows** from [apachefriends.org](https://www.apachefriends.org/index.html).
+1. Download **XAMPP for Windows**
 2. Install it in the default location (`C:\xampp`).
 
 ---
