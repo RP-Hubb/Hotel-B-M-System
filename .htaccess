@@ -2,20 +2,18 @@
 # Adishiv Luxury Hotel & Suites - Root Defense-in-Depth .htaccess
 # ==============================================================================
 
+DirectoryIndex index.php index.html
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Prevent access to hidden files and sensitive directories
+    # Prevent direct access to sensitive configuration and source files
     RewriteRule ^(\.env|\.git|\.agents|composer\.|package\.) - [F,L]
     RewriteRule ^(config|database|bin|src|tests)/ - [F,L]
     RewriteRule \.(sql|md|log|ini|sh|bak)$ - [F,L]
-
-    # If the docroot is set to this folder, transparently forward requests to /public/
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
-# Block file extensions directly
+# Block access to sensitive files
 <FilesMatch "(\.env|\.sql|\.md|\.log|\.ini|\.git)$">
     <IfModule mod_authz_core.c>
         Require all denied
